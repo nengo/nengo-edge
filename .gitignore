@@ -1,0 +1,6 @@
+﻿*.pyc
+.dvc/config
+.idea
+.ipynb_checkpoints
+bones-scripts/
+nengo_edge.egg-info

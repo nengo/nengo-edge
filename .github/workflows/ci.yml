@@ -1,0 +1,140 @@
+name: CI testing
+on:
+  pull_request: {}
+  push:
+    branches:
+      - main
+      - release-candidate-*
+    tags:
+      - v*
+  workflow_dispatch:
+    inputs:
+      debug_enabled:
+        description: Run the build with SSH debugging enabled
+        type: boolean
+        required: false
+        default: false
+
+jobs:
+  static:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: nengo-edge
+    steps:
+      - uses: nengo/nengo-bones/actions/setup@main
+        with:
+          python-version: "3.9"
+          path: nengo-edge
+      - uses: actions/checkout@v3
+        with:
+          repository: nengo/nengo-edge-models
+          path: nengo-edge-models
+          token: ${{ secrets.GH_TOKEN }}
+      - uses: actions/checkout@v3
+        with:
+          repository: nengo/nengo-edge-hw
+          path: nengo-edge-hw
+          token: ${{ secrets.GH_TOKEN }}
+      - name: Install NengoEdge libraries
+        run: |
+          pip install ../nengo-edge-models
+          pip install ../nengo-edge-hw
+      - uses: nengo/nengo-bones/actions/generate-and-check@main
+        with:
+          path: nengo-edge
+      - uses: nengo/nengo-bones/actions/run-script@main
+        with:
+          name: static
+          path: nengo-edge
+  test:
+    needs:
+      - static
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - script: test
+            coverage-name: standard
+          - script: test
+            coverage-name: py3.8
+            python: "3.8"
+            tf-version: tensorflow==2.10.0
+          - script: test
+            coverage-name: py3.10
+            python: "3.10"
+      fail-fast: false
+    env:
+      TF_VERSION: ${{ matrix.tf-version || 'tensorflow' }}
+    defaults:
+      run:
+        working-directory: nengo-edge
+    steps:
+      - uses: nengo/nengo-bones/actions/setup@main
+        with:
+          python-version: ${{ matrix.python || '3.9' }}
+          path: nengo-edge
+      - uses: actions/checkout@v3
+        with:
+          repository: nengo/nengo-edge-models
+          path: nengo-edge-models
+          token: ${{ secrets.GH_TOKEN }}
+      - uses: actions/checkout@v3
+        with:
+          repository: nengo/nengo-edge-hw
+          path: nengo-edge-hw
+          token: ${{ secrets.GH_TOKEN }}
+      - name: Install NengoEdge libraries
+        run: |
+          pip install ../nengo-edge-models
+          pip install ../nengo-edge-hw
+      - name: DVC setup
+        run: |
+          pip install dvc[s3]
+          dvc remote add -d nengo-edge-dvc s3://abr/nengo-edge-dvc
+          dvc remote modify nengo-edge-dvc endpointurl https://nyc3.digitaloceanspaces.com
+          dvc remote modify nengo-edge-dvc access_key_id NMMHMT3KS6UOPTUVI4I6
+          dvc remote modify nengo-edge-dvc secret_access_key ${{ secrets.SPACES_SECRET }}
+          dvc pull
+      - uses: nengo/nengo-bones/actions/generate-and-check@main
+        with:
+          path: nengo-edge
+      - uses: nengo/nengo-bones/actions/run-script@main
+        with:
+          name: ${{ matrix.script }}
+          path: nengo-edge
+      - uses: actions/upload-artifact@v3
+        if: ${{ always() && matrix.coverage-name }}
+        with:
+          name: coverage-${{ matrix.coverage-name }}
+          path: nengo-edge/.coverage
+  coverage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs:
+      - test
+    if: ${{ always() }}
+    steps:
+      - uses: nengo/nengo-bones/actions/coverage-report@main
+  deploy:
+    needs:
+      - test
+    if: >-
+      startsWith(github.ref_name, 'release-candidate-') ||
+      (github.ref_type == 'tag' && startsWith(github.ref_name, 'v'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Write .pypirc to file
+        run: |
+          echo '${{ secrets.PYPIRC_FILE }}' > ~/.pypirc
+      - uses: actions/checkout@v3
+      - uses: nengo/nengo-bones/actions/setup@main
+        with:
+          python-version: "3.10"
+      - uses: nengo/nengo-bones/actions/generate-and-check@main
+      - uses: nengo/nengo-bones/actions/run-script@main
+        with:
+          name: deploy

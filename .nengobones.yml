@@ -1,0 +1,65 @@
+project_name: NengoEdge Tools
+pkg_name: nengo_edge
+repo_name: nengo/nengo-edge
+min_python: 3.8
+main_branch: main
+
+description: Tools for working with NengoEdge
+copyright_start: 2022
+license: mit
+
+setup_cfg:
+  mypy:
+    ignore_missing_imports:
+      - tensorflow
+
+ci_scripts:
+  - template: static
+    pip_install:
+      - -e
+      - .[tests]
+  - template: test
+    coverage: true
+    pip_install:
+      - $TF_VERSION
+  - template: deploy
+
+manifest_in: {}
+
+setup_py:
+  author_email: edge-info@appliedbrainresearch.com
+  include_package_data: True
+  install_req:
+    - tensorflow>=2.10.0 # TODO: support earlier versions?
+  tests_req:
+    - mypy>=0.901
+    - pytest>=7.1.1
+    - pytest-rng>=1.0.0
+  docs_req:
+    - jupyter>=1.0.0
+    - sounddevice>=0.4.5
+  url: https://github.com/nengo/nengo-edge
+  classifiers:
+    - "Development Status :: 4 - Beta"
+    - "Framework :: Nengo"
+    - "Operating System :: Microsoft :: Windows"
+    - "Operating System :: POSIX :: Linux"
+    - "Programming Language :: Python"
+    - "Programming Language :: Python :: 3.7"
+    - "Programming Language :: Python :: 3.8"
+    - "Programming Language :: Python :: 3.9"
+    - "Programming Language :: Python :: 3.10"
+    - "Topic :: Scientific/Engineering"
+    - "Topic :: Scientific/Engineering :: Artificial Intelligence"
+
+pyproject_toml: {}
+
+pre_commit_config_yaml: {}
+
+py_typed: {}
+
+version_py:
+  type: calver
+  release: false
+
+license_rst: {}
