@@ -1,0 +1,4 @@
+﻿.idea
+*.pyc
+nengo_edge.egg-info
+.dvc/config
