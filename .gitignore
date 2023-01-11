@@ -2,3 +2,4 @@
 *.pyc
 nengo_edge.egg-info
 .dvc/config
+.ipynb_checkpoints
