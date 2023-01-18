@@ -1,5 +1,6 @@
-﻿.idea
-*.pyc
-nengo_edge.egg-info
+﻿*.pyc
 .dvc/config
+.idea
 .ipynb_checkpoints
+bones-scripts/
+nengo_edge.egg-info

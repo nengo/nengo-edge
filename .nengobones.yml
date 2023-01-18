@@ -30,7 +30,7 @@ setup_py:
   author_email: edge-info@appliedbrainresearch.com
   include_package_data: True
   install_req:
-    - tensorflow>=2.10.0  # TODO: support earlier versions?
+    - tensorflow>=2.10.0 # TODO: support earlier versions?
   tests_req:
     - mypy>=0.901
     - pytest>=7.1.1
