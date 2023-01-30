@@ -19,7 +19,7 @@ Release history
    - Removed
    - Fixed
 
-23.1.4 (unreleased)
-===================
+23.1.31 (January 31, 2023)
+==========================
 
 Initial release

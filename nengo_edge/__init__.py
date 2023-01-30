@@ -3,6 +3,9 @@
 import numpy as np
 from typing_extensions import Protocol
 
+from nengo_edge.version import copyright as __copyright__
+from nengo_edge.version import version as __version__
+
 
 class Runner(Protocol):
     """Run a model exported by NengoEdge."""
