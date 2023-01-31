@@ -60,6 +60,6 @@ py_typed: {}
 
 version_py:
   type: calver
-  release: true
+  release: false
 
 license_rst: {}

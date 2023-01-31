@@ -19,6 +19,9 @@ Release history
    - Removed
    - Fixed
 
+23.2.1 (unreleased)
+===================
+
 23.1.31 (January 31, 2023)
 ==========================
 
