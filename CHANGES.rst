@@ -22,6 +22,12 @@ Release history
 23.2.1 (unreleased)
 ===================
 
+**Fixed**
+
+- Fixed an issue causing pip to refuse to install ``nengo-edge``. (`#3`_)
+
+.. _#3: https://github.com/nengo/nengo-edge/pull/3
+
 23.1.31 (January 31, 2023)
 ==========================
 

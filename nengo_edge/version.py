@@ -11,10 +11,7 @@ unless the code base represents a release version. Release versions are git
 tagged with the version.
 """
 
-from datetime import date
-
-today = date.today()
-version_info = (today.year - 2000, today.month, today.day)
+version_info = (23, 2, 15)  # bones: ignore
 
 name = "nengo-edge"
 dev = 0
@@ -23,6 +20,6 @@ dev = 0
 # (since this file is parsed in setup.py, before python_requires is applied)
 version = ".".join(str(v) for v in version_info)
 if dev is not None:
-    version += ".dev%d" % dev
+    version += ".dev%d" % dev  # pragma: no cover
 
 copyright = "Copyright (c) 2022-2023 Applied Brain Research"
