@@ -34,7 +34,11 @@ install_req = [
 ]
 docs_req = [
     "jupyter>=1.0.0",
+    "nbsphinx>=0.8.11",
+    "nengo-sphinx-theme>=20.9",
+    "numpydoc>=1.4.0",
     "sounddevice>=0.4.5",
+    "sphinx-tabs~=3.2.0",
 ]
 optional_req = []
 tests_req = [

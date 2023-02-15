@@ -3,4 +3,6 @@
 .idea
 .ipynb_checkpoints
 bones-scripts/
+docs/_build/
 nengo_edge.egg-info
+tmp

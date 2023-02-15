@@ -65,9 +65,11 @@ jobs:
           - script: test
             coverage-name: py3.10
             python: "3.10"
+          - script: docs
       fail-fast: false
     env:
       TF_VERSION: ${{ matrix.tf-version || 'tensorflow' }}
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
     defaults:
       run:
         working-directory: nengo-edge
