@@ -24,6 +24,7 @@ ci_scripts:
       - $TF_VERSION
   - template: docs
   - template: deploy
+    wheel: true
 
 manifest_in: {}
 
@@ -71,6 +72,6 @@ py_typed: {}
 
 version_py:
   type: calver
-  release: false
+  release: true
 
 license_rst: {}
