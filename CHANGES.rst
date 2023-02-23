@@ -19,6 +19,11 @@ Release history
    - Removed
    - Fixed
 
+23.2.24 (unreleased)
+====================
+
+
+
 23.2.23 (February 23, 2023)
 ===========================
 

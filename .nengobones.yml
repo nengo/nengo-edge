@@ -43,7 +43,7 @@ setup_py:
     - nengo-sphinx-theme>=20.9
     - numpydoc>=1.4.0
     - sounddevice>=0.4.5
-    - sphinx-tabs~=3.2.0  # more recent versions are incompatible with sphinx 3
+    - sphinx-tabs~=3.2.0 # more recent versions are incompatible with sphinx 3
   url: https://github.com/nengo/nengo-edge
   classifiers:
     - "Development Status :: 4 - Beta"
@@ -72,6 +72,6 @@ py_typed: {}
 
 version_py:
   type: calver
-  release: true
+  release: false
 
 license_rst: {}
