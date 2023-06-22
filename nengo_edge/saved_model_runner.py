@@ -7,7 +7,7 @@ import numpy as np
 import tensorflow as tf
 
 
-class Runner:
+class SavedModelRunner:
     """Run a model exported in TensorFlow's SavedModel format."""
 
     def __init__(self, directory: Union[str, Path]):
@@ -46,7 +46,8 @@ class Runner:
         -------
         outputs : ``np.ndarray``
             Model output values (with shape ``(batch_size, output_d)`` if
-            ``return_sequences=False`` else ``(batch_size, output_steps, output_d)``).
+            the model was built to return only the final time step,
+            else ``(batch_size, output_steps, output_d)``).
         """
 
         inputs = tf.cast(inputs, "float32")

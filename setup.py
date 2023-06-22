@@ -37,6 +37,8 @@ docs_req = [
     "nbsphinx>=0.8.11",
     "nengo-sphinx-theme>=20.9",
     "numpydoc>=1.4.0",
+    "rich>=13.3.1",
+    "pyserial>=3.5",
     "sounddevice>=0.4.5",
     "sphinx-tabs~=3.2.0",
 ]

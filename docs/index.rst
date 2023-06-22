@@ -32,5 +32,6 @@ Learn more
 
    installation
    examples/microphone-demo/microphone-demo
-
+   examples/coral_demo
+   examples/micro_device_demo
 .. * :ref:`genindex`  TODO include once we generate API docs
