@@ -40,8 +40,7 @@ class Runner:
         Parameters
         ----------
         inputs : np.ndarray
-            Model input values (should have shape ``(batch_size, input_steps)`` if
-            ``extract_features`` else ``(batch_size, input_steps, input_d)``).
+            Model input values (should have shape ``(batch_size, input_steps)``).
 
         Returns
         -------

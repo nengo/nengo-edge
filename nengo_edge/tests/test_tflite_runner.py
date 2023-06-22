@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 import tensorflow as tf
 from nengo_edge_hw import coral
-from nengo_edge_models.tests.test_models import _test_lmu
+from nengo_edge_models.kws.tests.test_models import _test_lmu
 
 from nengo_edge.tflite_runner import Runner
 
@@ -36,14 +36,8 @@ def test_runner_streaming(
 
     inputs = rng.uniform(-0.5, 0.5, size=(batch_size, 16000))
 
-    runner = Runner(
-        tmp_path / "exported", extract_features=True, return_sequences=return_sequences
-    )
-    runner_batch = Runner(
-        tmp_path / "exported-batch",
-        extract_features=True,
-        return_sequences=return_sequences,
-    )
+    runner = Runner(tmp_path / "exported")
+    runner_batch = Runner(tmp_path / "exported-batch")
 
     # check that batched and non-batched models produce the same output (state is being
     # properly reset between batch items)
@@ -89,12 +83,17 @@ def test_runner_errors(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     model_desc.n_unroll = 2
     monkeypatch.setattr(coral.host.Interface, "io_dtype", None)
     host = coral.host.Interface(model_desc, build_dir=tmp_path, use_device=False)
-    host.export_model(tmp_path)
+    host.export_model(tmp_path, include_feature_extractor=False)
 
-    runner = Runner(tmp_path, extract_features=False)
+    runner = Runner(tmp_path)
 
     with pytest.raises(ValueError, match="evenly divided by unroll"):
         runner.run(np.zeros((1, 3, 10)))
+
+    Path(tmp_path / "model.tflite").unlink()
+
+    with pytest.raises(FileNotFoundError, match="Could not find model file"):
+        TFLiteRunner(tmp_path)
 
 
 def test_runner_quantized(tmp_path: Path, rng: np.random.RandomState) -> None:

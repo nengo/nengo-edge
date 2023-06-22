@@ -7,7 +7,7 @@ import numpy as np
 import pytest
 import tensorflow as tf
 from nengo_edge_hw import gpu
-from nengo_edge_models.tests.test_models import _test_lmu
+from nengo_edge_models.kws.tests.test_models import _test_lmu
 
 from nengo_edge.saved_model_runner import Runner
 

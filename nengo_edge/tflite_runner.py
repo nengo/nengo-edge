@@ -1,13 +1,16 @@
 """Interface for running an exported NengoEdge model in TFLite format."""
 
+import warnings
 from pathlib import Path
 from typing import Any, Dict, List, Tuple, Union
 
 import numpy as np
 import tensorflow as tf
 
+from nengo_edge import config
 
-class Runner:
+
+class TFLiteRunner:
     """
     Run an exported TFLite model.
 
@@ -15,44 +18,42 @@ class Runner:
     ----------
     directory : Union[str, Path]
         Path to the directory containing the exported model files.
-    extract_features : bool
-        Perform feature extraction on inputs if True (default). Otherwise, feature
-        extraction is assumed to be performed manually elsewhere in the pipeline.
-    return_sequences : bool
-        If True (default False), return output from every timestep instead of only
-        the last timestep.
     """
 
-    def __init__(
-        self,
-        directory: Union[str, Path],
-        extract_features: bool = True,
-        return_sequences: bool = False,
-    ):
+    def __init__(self, directory: Union[str, Path]):
         self.directory = Path(directory)
-        self.extract_features = extract_features
-        # TODO: automatically determine return_sequences from the exported model somehow
-        self.return_sequences = return_sequences
+        self.model_params, self.preprocessing = config.load_params(self.directory)
 
         # Build interpreters
-        self.model_interpreter = self._build_interpreter(
-            self.directory / "model.tflite"
-        )
-        if extract_features:
-            self.feature_interpreter = self._build_interpreter(
-                self.directory / "feature_extractor.tflite"
+        model_path = self.directory / "model.tflite"
+        if not model_path.exists():
+            raise FileNotFoundError(f"Could not find model file ({model_path})")
+        self.model_interpreter = tf.lite.Interpreter(model_path=str(model_path))
+        self.model_interpreter.allocate_tensors()
+
+        feature_path = self.directory / "feature_extractor.tflite"
+        if not feature_path.exists():
+            warnings.warn(
+                f"Could not find feature extractor model file ({feature_path}).\n"
+                f"Using the tflite runner without a compiled feature extractor is "
+                f"an experimental feature and may lead to poor model performance."
             )
+            self.feature_interpreter = None
+        else:
+            self.feature_interpreter = tf.lite.Interpreter(model_path=str(feature_path))
+            self.feature_interpreter.allocate_tensors()
 
         self.reset_state()
 
     def reset_state(self) -> None:
         """Reset the internal state of the model to initial conditions."""
-
+        assert self.model_interpreter is not None
         self.model_state = [
             np.zeros(x["shape"], dtype=x["dtype"])
             for x in self.model_interpreter.get_input_details()[1:]
         ]
-        if self.extract_features:
+
+        if self.feature_interpreter is not None:
             self.feature_state = [
                 np.zeros(
                     [
@@ -72,31 +73,21 @@ class Runner:
         Parameters
         ----------
         inputs : np.ndarray
-            Model input values (should have shape ``(batch_size, input_steps)`` if
-            ``extract_features`` else ``(batch_size, input_steps, input_d)``).
+            Model input values (should have shape ``(batch_size, input_steps)``).
 
         Returns
         -------
         outputs : ``np.ndarray``
             Model output values (with shape ``(batch_size, output_d)`` if
-            ``return_sequences=False`` else ``(batch_size, output_steps, output_d)``).
+            ``self.model_params['return_sequences']=False``
+            else ``(batch_size, output_steps, output_d)``).
         """
-
-        if self.extract_features:
+        if self.feature_interpreter is not None:
             inputs, self.feature_state = self._run_feature_extractor(inputs)
 
         outputs, self.model_state = self._run_model(inputs)
 
         return outputs
-
-    def _build_interpreter(self, model_path: Path) -> tf.lite.Interpreter:
-        """Build a TFLite interpreter for the given model file."""
-
-        interpreter = tf.lite.Interpreter(model_path=str(model_path))
-
-        interpreter.allocate_tensors()
-
-        return interpreter
 
     def _resize_inputs(
         self, interpreter: tf.lite.Interpreter, input_vals: List[np.ndarray]
@@ -116,6 +107,7 @@ class Runner:
         self, inputs: np.ndarray
     ) -> Tuple[np.ndarray, List[np.ndarray]]:
         """Run the feature extractor on the given inputs."""
+        assert self.feature_interpreter is not None
 
         self._resize_inputs(self.feature_interpreter, [inputs] + self.feature_state)
 
@@ -165,7 +157,7 @@ class Runner:
         inputs = self.quantize(inputs, input_details[0])
 
         state_input = self.model_state
-        if self.return_sequences:
+        if self.model_params["return_sequences"]:
             output_sequences = []
 
         for step in range(0, n_steps, n_unroll):
@@ -185,11 +177,11 @@ class Runner:
                 for out, details in zip(output_tensors[1:], output_details[1:])
             ]
 
-            if self.return_sequences:
+            if self.model_params["return_sequences"]:
                 # Append all outputs from the past `unroll` timesteps
                 output_sequences.append(output_tensors[0]().copy())
 
-        if self.return_sequences:
+        if self.model_params["return_sequences"]:
             # concatenate outputs from each unroll block
             # note: because the model was built with return_sequences=True, this
             # represents the output from all the timesteps
@@ -209,7 +201,6 @@ class Runner:
     @staticmethod
     def quantize(val: np.ndarray, details: Dict[str, Any]) -> np.ndarray:
         """Quantize the given value based on quantization parameters."""
-
         n_scales = len(details["quantization_parameters"]["scales"])
         if n_scales == 0:
             # val is not quantized
@@ -226,7 +217,6 @@ class Runner:
     @staticmethod
     def dequantize(val: np.ndarray, details: Dict[str, Any]) -> np.ndarray:
         """Dequantize the given value based on quantization parameters."""
-
         n_scales = len(details["quantization_parameters"]["scales"])
         if n_scales == 0:
             # val is not quantized
