@@ -6,9 +6,10 @@ Nengo-edge supports running on the Coral dev board via this runner.
 
 import subprocess
 from pathlib import Path
-from typing import List, Union
+from typing import List, Sequence, Union
 
 import numpy as np
+import tensorflow as tf
 
 from nengo_edge import config
 from nengo_edge.device_modules import coral_device, np_mfcc
@@ -79,12 +80,12 @@ class NetworkRunner:
         """Reset the state of the network runner."""
         self.prepared = False
 
-    def send_inputs(self, inputs: np.ndarray) -> None:
+    def send_inputs(self, inputs: Sequence[np.ndarray]) -> None:
         """Saves inputs to file and sends to device."""
 
         # save inputs to file
         filepath = self.directory / "inputs.npz"
-        np.savez_compressed(filepath, inputs=inputs)
+        np.savez_compressed(filepath, **{f"input_{i}": x for i, x in enumerate(inputs)})
 
         # copy to device
         self._scp([filepath])
@@ -108,9 +109,8 @@ class NetworkRunner:
         self.prepared = True
 
     def _run_model(
-        self,
-        inputs: np.ndarray,
-    ) -> np.ndarray:  # pragma: no cover (needs device)
+        self, inputs: Sequence[np.ndarray]
+    ) -> Sequence[np.ndarray]:  # pragma: no cover (needs device)
         """Run the main model logic on the given inputs."""
         self.send_inputs(inputs)
         subprocess.run(
@@ -130,18 +130,20 @@ class NetworkRunner:
         outputs = np.load(self.directory / "outputs.npy")
         return outputs
 
-    def run(self, inputs: np.ndarray) -> np.ndarray:  # pragma: no cover (needs device)
+    def run(
+        self, inputs: Union[np.ndarray, Sequence[np.ndarray]]
+    ) -> Union[np.ndarray, Sequence[np.ndarray]]:  # pragma: no cover (needs device)
         """
         Run model inference on a batch of inputs.
 
         Parameters
         ----------
-        inputs : np.ndarray
+        inputs : Union[np.ndarray, Sequence[np.ndarray]]
             Model input values (must have shape ``(batch_size, input_steps)``)
 
         Returns
         -------
-        outputs : ``np.ndarray``
+        outputs : Union[np.ndarray, Sequence[np.ndarray]]
             Model output values (with shape ``(batch_size, output_d)`` if
             ``self.model_params['return_sequences']=False``
             else ``(batch_size, output_steps, output_d)``).
@@ -149,7 +151,11 @@ class NetworkRunner:
         if not self.prepared:
             self.prepare_device_runner()
 
-        outputs = self._run_model(inputs)
+        outputs = self._run_model(tf.nest.flatten(inputs))
+
+        if isinstance(outputs, (list, tuple)) and len(outputs) == 1:
+            outputs = outputs[0]
+
         return outputs
 
 

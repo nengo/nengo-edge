@@ -34,7 +34,7 @@ def test_runner(
         -1, 1, size=(32,) + ((49, 20) if mode == "model-only" else (16000,))
     ).astype("float32")
 
-    output0 = interface.run(inputs)
+    output0 = interface.run([inputs])[0]
 
     interface.export_model(tmp_path)
 
@@ -56,7 +56,7 @@ def test_runner_streaming(
 
     # 3200 timesteps is equivalent to 200ms at 16 kHz
     inputs = rng.uniform(-1, 1, size=(32, 3200)).astype("float32")
-    output0 = interface.run(inputs)
+    output0 = interface.run([inputs])[0]
 
     interface.export_model(tmp_path / "streaming", streaming=True)
     runner = SavedModelRunner(tmp_path / "streaming")
@@ -82,8 +82,8 @@ def test_runner_streaming(
     # test zero padding
     runner.reset_state()
     pad_output = runner.run(inputs[:, :10])
-    pad_output_gt = (
-        interface.run(
+    pad_output_gt = interface.run(
+        [
             np.concatenate(
                 [
                     inputs[:, :10],
@@ -91,23 +91,27 @@ def test_runner_streaming(
                 ],
                 axis=1,
             )
-        ),
-    )
+        ]
+    )[0]
     assert np.allclose(pad_output, pad_output_gt, atol=2e-6), np.max(
         np.abs(pad_output - pad_output_gt)
     )
     pad_output_step = runner.run(inputs[:, -10:])
     pad_output_step_gt = interface.run(
-        np.concatenate(
-            [
-                inputs[:, :10],
-                np.zeros((32, interface.pipeline.pre[0].window_size_samples - 10)),
-                inputs[:, -10:],
-                np.zeros((32, interface.pipeline.pre[0].window_stride_samples - 10)),
-            ],
-            axis=1,
-        )
-    )
+        [
+            np.concatenate(
+                [
+                    inputs[:, :10],
+                    np.zeros((32, interface.pipeline.pre[0].window_size_samples - 10)),
+                    inputs[:, -10:],
+                    np.zeros(
+                        (32, interface.pipeline.pre[0].window_stride_samples - 10)
+                    ),
+                ],
+                axis=1,
+            )
+        ]
+    )[0]
     assert np.allclose(pad_output_step, pad_output_step_gt, atol=2e-6), np.max(
         np.abs(pad_output_step - pad_output_step_gt)
     )

@@ -64,5 +64,5 @@ def test_coral_runner(
     assert (net_runner.remote_dir / "parameters.json").exists()
     assert (net_runner.remote_dir / "np_mfcc.py").exists()
 
-    net_runner.send_inputs(inputs)
+    net_runner.send_inputs([inputs])
     assert (net_runner.remote_dir / "inputs.npz").exists()

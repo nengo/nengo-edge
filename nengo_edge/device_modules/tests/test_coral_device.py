@@ -62,7 +62,7 @@ def test_cli(
     # get output from cli
     assert isinstance(runner.remote_dir, Path)
     runner.prepare_device_runner()
-    runner.send_inputs(inputs)
+    runner.send_inputs([inputs])
 
     monkeypatch.setattr(
         sys,

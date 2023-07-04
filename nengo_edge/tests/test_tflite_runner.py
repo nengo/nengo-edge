@@ -111,6 +111,6 @@ def test_runner_quantized(tmp_path: Path, rng: np.random.RandomState) -> None:
 
     x = rng.uniform(-1, 1, size=(1, 16000))
     y0 = runner.run(x)
-    y1 = host.run(x)
+    y1 = host.run([x])[0]
 
     assert np.allclose(y0, y1, atol=5e-5), np.max(abs(y0 - y1))
