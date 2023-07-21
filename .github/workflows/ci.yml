@@ -15,6 +15,10 @@ on:
         required: false
         default: false
 
+defaults:
+  run:
+    shell: bash -el {0}
+
 jobs:
   static:
     runs-on: ubuntu-latest
@@ -22,6 +26,7 @@ jobs:
     defaults:
       run:
         working-directory: nengo-edge
+        shell: bash -el {0}
     steps:
       - uses: nengo/nengo-bones/actions/setup@main
         with:
@@ -73,6 +78,7 @@ jobs:
     defaults:
       run:
         working-directory: nengo-edge
+        shell: bash -el {0}
     steps:
       - uses: nengo/nengo-bones/actions/setup@main
         with:
