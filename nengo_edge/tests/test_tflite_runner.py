@@ -32,22 +32,21 @@ def test_runner_streaming(
     )
 
     host.export_model(tmp_path / "exported")
-    host.export_model(tmp_path / "exported-batch", batch_size=batch_size)
 
     inputs = rng.uniform(-0.5, 0.5, size=(batch_size, 16000))
 
     runner = TFLiteRunner(tmp_path / "exported")
-    runner_batch = TFLiteRunner(tmp_path / "exported-batch")
 
     # check that batched and non-batched models produce the same output (state is being
     # properly reset between batch items)
     out = []
     for i in range(batch_size):
         out.append(runner.run(inputs[i : i + 1]))
-        runner.reset_state()
+        runner.reset_state(batch_size=1)
     out0 = np.concatenate(out, axis=0)
 
-    out1 = runner_batch.run(inputs)
+    runner.reset_state(batch_size=batch_size)
+    out1 = runner.run(inputs)
 
     assert (
         out0.shape
@@ -59,17 +58,17 @@ def test_runner_streaming(
     assert np.allclose(out0, out1, atol=1e-5), np.max(abs(out0 - out1))
 
     # check that running sequentially produces the same output as running all at once
-    runner_batch.reset_state()
+    runner.reset_state(batch_size=batch_size)
     if return_sequences:
         out0 = np.concatenate(
-            [runner_batch.run(inputs[:, :4000]), runner_batch.run(inputs[:, 4000:])],
+            [runner.run(inputs[:, :4000]), runner.run(inputs[:, 4000:])],
             axis=1,
         )
     else:
-        runner_batch.run(inputs[:, :4000])
-        out0 = runner_batch.run(inputs[:, 4000:])
-    runner_batch.reset_state()
-    out1 = runner_batch.run(inputs)
+        runner.run(inputs[:, :4000])
+        out0 = runner.run(inputs[:, 4000:])
+    runner.reset_state(batch_size=batch_size)
+    out1 = runner.run(inputs)
     assert (
         out0.shape
         == out1.shape

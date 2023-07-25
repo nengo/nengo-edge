@@ -36,8 +36,11 @@ Release history
 
 - Renamed ``tflite_runner.Runner`` to ``TFLiteRunner``. (`#4`_)
 - Renamed ``saved_model_runner.Runner`` to ``SavedModelRunner``. (`#4`_)
+- ``TFLiteRunner.reset_state`` now takes a ``batch_size`` argument, which can be used
+  to prepare the model to run with different batch sizes. (`#5`_)
 
 .. _#4: https://github.com/nengo/nengo-edge/pull/4
+.. _#5: https://github.com/nengo/nengo-edge/pull/5
 
 23.2.23 (February 23, 2023)
 ===========================

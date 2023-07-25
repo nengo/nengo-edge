@@ -45,11 +45,11 @@ class TFLiteRunner:
 
         self.reset_state()
 
-    def reset_state(self) -> None:
+    def reset_state(self, batch_size: int = 1) -> None:
         """Reset the internal state of the model to initial conditions."""
         assert self.model_interpreter is not None
         self.model_state = [
-            np.zeros(x["shape"], dtype=x["dtype"])
+            np.zeros([batch_size] + x["shape"].tolist()[1:], dtype=x["dtype"])
             for x in self.model_interpreter.get_input_details()[1:]
         ]
 
@@ -58,8 +58,10 @@ class TFLiteRunner:
                 np.zeros(
                     [
                         # initialize dynamic state sizes to 0 to avoid startup artifacts
-                        0 if sig == -1 else val
-                        for sig, val in zip(x["shape_signature"], x["shape"])
+                        batch_size if i == 0 else (0 if sig == -1 else val)
+                        for i, (sig, val) in enumerate(
+                            zip(x["shape_signature"], x["shape"])
+                        )
                     ],
                     dtype=x["dtype"],
                 )
