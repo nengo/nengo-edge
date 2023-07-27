@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 import tensorflow as tf
 from nengo_edge_models.audio import SpeechFeatures
-from nengo_edge_models.audio.base_data import MFCCOptions
+from nengo_edge_models.models import MFCC
 
 from nengo_edge.device_modules import np_mfcc
 
@@ -36,7 +36,7 @@ def test_mel_matrix() -> None:
 def test_spectrogram(rng: np.random.RandomState) -> None:
     x = rng.uniform(0, 1, size=(32, 16000))
 
-    options = MFCCOptions(
+    options = MFCC(
         window_size_ms=400,
         window_stride_ms=160,
         sample_rate=1000,
@@ -58,7 +58,7 @@ def test_spectrogram(rng: np.random.RandomState) -> None:
 def test_mel_spectrogram(rng: np.random.RandomState) -> None:
     x = rng.uniform(0, 1, size=(32, 16000))
 
-    options = MFCCOptions()
+    options = MFCC()
 
     layer = SpeechFeatures(options, dtype="float64")
     y0 = layer(x)
@@ -81,7 +81,7 @@ def test_mel_spectrogram(rng: np.random.RandomState) -> None:
 def test_dct(rng: np.random.RandomState) -> None:
     x = rng.uniform(0, 1, size=(32, 49, 40))
     x = tf.cast(x, tf.float32)
-    layer = SpeechFeatures(MFCCOptions(dct_num_features=20))
+    layer = SpeechFeatures(MFCC(dct_num_features=20))
     layer.build(x.shape)
     y0 = layer.dct(x)
 
@@ -92,7 +92,7 @@ def test_dct(rng: np.random.RandomState) -> None:
 
 
 def test_mfcc_features(rng: np.random.RandomState) -> None:
-    options = MFCCOptions()
+    options = MFCC()
     x = rng.uniform(0, 2, size=(32, 16000))
 
     feature_layer = SpeechFeatures(options, dtype=tf.float64)

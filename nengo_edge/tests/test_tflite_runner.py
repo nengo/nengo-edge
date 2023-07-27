@@ -79,10 +79,10 @@ def test_runner_streaming(
 
 def test_runner_errors(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     model_desc = _test_lmu()
-    model_desc.n_unroll = 2
+    model_desc.pre = []
     monkeypatch.setattr(coral.host.Interface, "io_dtype", None)
     host = coral.host.Interface(
-        model_desc, build_dir=tmp_path, use_device=False, mode="model-only"
+        model_desc, build_dir=tmp_path, use_device=False, n_unroll=2
     )
     host.export_model(tmp_path)
 
