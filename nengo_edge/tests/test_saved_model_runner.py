@@ -8,6 +8,7 @@ import pytest
 import tensorflow as tf
 from nengo_edge_hw import gpu
 from nengo_edge_models.kws.models import lmu_small
+from nengo_edge_models.models import MFCC
 
 from nengo_edge.saved_model_runner import SavedModelRunner
 
@@ -21,7 +22,13 @@ def test_runner(
 ) -> None:
     tf.keras.utils.set_random_seed(seed)
 
-    interface = gpu.host.Interface(lmu_small(), mode=mode, build_dir=tmp_path)
+    pipeline = lmu_small()
+    if mode == "feature-only":
+        pipeline.model = []
+    elif mode == "model-only":
+        pipeline.pre = []
+
+    interface = gpu.host.Interface(pipeline, build_dir=tmp_path)
 
     inputs = rng.uniform(
         -1, 1, size=(32,) + ((49, 20) if mode == "model-only" else (16000,))
@@ -44,7 +51,8 @@ def test_runner_streaming(
 ) -> None:
     tf.keras.utils.set_random_seed(seed)
 
-    interface = gpu.host.Interface(lmu_small(), mode="full", build_dir=tmp_path)
+    interface = gpu.host.Interface(lmu_small(), build_dir=tmp_path)
+    assert isinstance(interface.pipeline.pre[0], MFCC)
 
     # 3200 timesteps is equivalent to 200ms at 16 kHz
     inputs = rng.uniform(-1, 1, size=(32, 3200)).astype("float32")
@@ -74,16 +82,14 @@ def test_runner_streaming(
     # test zero padding
     runner.reset_state()
     pad_output = runner.run(inputs[:, :10])
-    pad_output_gt = (
-        interface.run(
-            np.concatenate(
-                [
-                    inputs[:, :10],
-                    np.zeros((32, interface.audio_options.window_size_samples - 10)),
-                ],
-                axis=1,
-            )
-        ),
+    pad_output_gt = interface.run(
+        np.concatenate(
+            [
+                inputs[:, :10],
+                np.zeros((32, interface.pipeline.pre[0].window_size_samples - 10)),
+            ],
+            axis=1,
+        )
     )
     assert np.allclose(pad_output, pad_output_gt, atol=2e-6), np.max(
         np.abs(pad_output - pad_output_gt)
@@ -93,9 +99,9 @@ def test_runner_streaming(
         np.concatenate(
             [
                 inputs[:, :10],
-                np.zeros((32, interface.audio_options.window_size_samples - 10)),
+                np.zeros((32, interface.pipeline.pre[0].window_size_samples - 10)),
                 inputs[:, -10:],
-                np.zeros((32, interface.audio_options.window_stride_samples - 10)),
+                np.zeros((32, interface.pipeline.pre[0].window_stride_samples - 10)),
             ],
             axis=1,
         )

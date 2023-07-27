@@ -174,10 +174,7 @@ def _run_model(
     runner: CoralDeviceRunner,
     inputs: np.ndarray,
 ) -> np.ndarray:
-    inputs = np.concatenate(
-        [feature_extractor(inputs[i : i + 1]) for i in range(inputs.shape[0])],
-        axis=0,
-    )
+    inputs = feature_extractor(inputs)
 
     # coral board only supports batch size of 1, so we have to manually iterate
     # over batches

@@ -42,7 +42,6 @@ jobs:
           repository: nengo/nengo-edge-hw
           path: nengo-edge-hw
           token: ${{ secrets.GH_TOKEN }}
-          ref: version-export
       - name: Install NengoEdge libraries
         run: |
           pip install ../nengo-edge-models
@@ -94,7 +93,6 @@ jobs:
           repository: nengo/nengo-edge-hw
           path: nengo-edge-hw
           token: ${{ secrets.GH_TOKEN }}
-          ref: version-export
       - name: Install NengoEdge libraries
         run: |
           pip install ../nengo-edge-models
