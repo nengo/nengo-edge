@@ -11,10 +11,10 @@ unless the code base represents a release version. Release versions are git
 tagged with the version.
 """
 
-version_info = (23, 7, 19)  # bones: ignore
+version_info = (23, 7, 30)
 
 name = "nengo-edge"
-dev = 0
+dev = None
 
 # use old string formatting, so that this can still run in Python <= 3.5
 # (since this file is parsed in setup.py, before python_requires is applied)

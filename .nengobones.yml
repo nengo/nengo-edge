@@ -35,6 +35,7 @@ setup_py:
   author_email: edge-info@appliedbrainresearch.com
   include_package_data: True
   install_req:
+    - pyserial>=3.5
     - tensorflow>=2.10.0 # TODO: support earlier versions?
   tests_req:
     - mypy>=0.901
@@ -46,7 +47,6 @@ setup_py:
     - nengo-sphinx-theme>=20.9
     - numpydoc>=1.4.0
     - rich>=13.3.1
-    - pyserial>=3.5
     - sounddevice>=0.4.5
     - sphinx-tabs~=3.2.0 # more recent versions are incompatible with sphinx 3
   url: https://github.com/nengo/nengo-edge
@@ -77,6 +77,6 @@ py_typed: {}
 
 version_py:
   type: calver
-  release: false
+  release: true
 
 license_rst: {}
