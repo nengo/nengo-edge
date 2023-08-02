@@ -30,6 +30,7 @@ root = pathlib.Path(__file__).parent
 version = runpy.run_path(str(root / "nengo_edge" / "version.py"))["version"]
 
 install_req = [
+    "packaging>=20.9",
     "pyserial>=3.5",
     "tensorflow>=2.10.0",
 ]

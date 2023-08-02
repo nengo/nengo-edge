@@ -2,6 +2,8 @@ import json
 
 import pytest
 
+from nengo_edge.version import version
+
 
 @pytest.fixture
 def param_dir(tmp_path):
@@ -22,6 +24,7 @@ def param_dir(tmp_path):
             "state_shapes": [10, 10],
             "return_sequences": True,
         },
+        "version": {"nengo-edge": version},
     }
 
     with open(tmp_path / "parameters.json", "w", encoding="utf-8") as f:

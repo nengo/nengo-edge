@@ -15,12 +15,19 @@ Release history
 
    - Added
    - Changed
+   - Fixed
    - Deprecated
    - Removed
-   - Fixed
 
 23.7.31 (unreleased)
 ====================
+
+**Added**
+
+- Added warning when a downloaded nengo-edge model artifacts' version does not 
+  match local environment nengo-edge version. (`#6`_)
+  
+.. _#6: https://github.com/nengo/nengo-edge/pull/6
 
 23.7.30 (July 30, 2023)
 =======================

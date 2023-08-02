@@ -54,7 +54,7 @@ class MicroRunner:
         self.device_path = Path(device_path)
         self.binary_name = binary_name
         self.model_params, self.preprocessing = config.load_params(self.directory)
-        self.uses_states = len(self.model_params["state_shapes"]) > 0
+        self.uses_states = "state_shapes" in self.model_params.keys()
 
         # the amount of data that will be output by the model
         self.recv_size = self.model_params["output_shape"][-1]

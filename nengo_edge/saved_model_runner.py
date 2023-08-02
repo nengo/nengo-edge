@@ -6,6 +6,8 @@ from typing import Dict, Union
 import numpy as np
 import tensorflow as tf
 
+from nengo_edge import config
+
 
 class SavedModelRunner:
     """Run a model exported in TensorFlow's SavedModel format."""
@@ -16,6 +18,8 @@ class SavedModelRunner:
         self.model = tf.saved_model.load(str(self.directory)).signatures[
             "serving_default"
         ]
+
+        self.model_params, self.preprocessing = config.load_params(self.directory)
 
         # The saved model takes inputs and returns outputs organized by name. But in
         # general we don't know what those names will be, because they can depend on
