@@ -27,7 +27,13 @@ Release history
 - Added warning when a downloaded nengo-edge model artifacts' version does not 
   match local environment nengo-edge version. (`#6`_)
   
+**Changed**
+
+- ``SavedModelRunner`` now uses Keras' SavedModel format, instead of the raw
+  TensorFlow SavedModel format. (`#8`_)
+
 .. _#6: https://github.com/nengo/nengo-edge/pull/6
+.. _#8: https://github.com/nengo/nengo-edge/pull/8
 
 23.7.30 (July 30, 2023)
 =======================

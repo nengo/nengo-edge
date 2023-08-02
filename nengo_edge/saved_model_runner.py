@@ -1,7 +1,7 @@
 """Interface for running an exported NengoEdge model in SavedModel format."""
 
 from pathlib import Path
-from typing import Dict, Union
+from typing import List, Optional, Union
 
 import numpy as np
 import tensorflow as tf
@@ -15,27 +15,16 @@ class SavedModelRunner:
     def __init__(self, directory: Union[str, Path]):
         self.directory = Path(directory)
 
-        self.model = tf.saved_model.load(str(self.directory)).signatures[
-            "serving_default"
-        ]
+        self.model = tf.keras.saving.load_model(directory, compile=False)
 
         self.model_params, self.preprocessing = config.load_params(self.directory)
-
-        # The saved model takes inputs and returns outputs organized by name. But in
-        # general we don't know what those names will be, because they can depend on
-        # what other models have been loaded in the TensorFlow graph. However, when
-        # creating the models in NengoEdge we ensure that the inputs/outputs will be
-        # ordered alphabetically, so we can use that to recover the correct
-        # input/output order here.
-        self.input_names = sorted(self.model.structured_input_signature[1])
-        self.output_names = sorted(self.model.structured_outputs)
 
         self.reset_state()
 
     def reset_state(self) -> None:
         """Reset the internal state of the model to initial conditions."""
 
-        self.state: Dict[str, tf.Tensor] = {}
+        self.state: Optional[List[tf.Tensor]] = None
 
     def run(self, inputs: np.ndarray) -> np.ndarray:
         """
@@ -55,23 +44,27 @@ class SavedModelRunner:
         """
 
         inputs = tf.cast(inputs, "float32")
+        batch_size = inputs.shape[0]
 
-        kwargs = {}
-        for name, sig in self.model.structured_input_signature[1].items():
-            if name == self.input_names[0]:
-                kwargs[name] = inputs
-            else:
-                if name not in self.state:
-                    self.state[name] = tf.zeros(
-                        [inputs.shape[0]]
-                        + [0 if s is None else s for s in sig.shape[1:]]
-                    )
-                kwargs[name] = self.state[name]
+        model_inputs = tf.nest.flatten(inputs)
 
-        outputs = self.model(**kwargs)
+        if self.state is None:
+            self.state = [
+                tf.zeros(
+                    [batch_size] + [0 if s is None else s for s in state.shape[1:]]
+                )
+                for state in self.model.inputs[1:]
+            ]
+        else:
+            if not all(s.shape[0] == batch_size for s in self.state):
+                raise ValueError(
+                    "Input batch size does not match saved state batch size; "
+                    "maybe you need to call reset_state()?"
+                )
+
+        outputs = tf.nest.flatten(self.model(model_inputs + self.state))
 
         # Update saved state
-        for input_name, output_name in zip(self.input_names[1:], self.output_names[1:]):
-            self.state[input_name] = outputs[output_name]
+        self.state = outputs[1:]
 
-        return outputs[self.output_names[0]]
+        return outputs[0].numpy()

@@ -109,3 +109,25 @@ def test_runner_streaming(
     assert np.allclose(pad_output_step, pad_output_step_gt, atol=2e-6), np.max(
         np.abs(pad_output_step - pad_output_step_gt)
     )
+
+
+def test_runner_state(tmp_path: Path) -> None:
+    pipeline = lmu_small()
+    interface = gpu.host.Interface(pipeline, build_dir=tmp_path)
+    interface.export_model(tmp_path, streaming=True)
+
+    runner = SavedModelRunner(tmp_path)
+
+    assert runner.state is None
+    runner.run(np.ones((3, 100)))
+    assert runner.state is not None
+    assert len(runner.state) == 9
+
+    with pytest.raises(ValueError, match="does not match saved state batch size"):
+        runner.run(np.ones((5, 100)))
+
+    runner.reset_state()
+    assert runner.state is None
+    runner.run(np.ones((5, 100)))
+    assert runner.state is not None
+    assert len(runner.state) == 9
