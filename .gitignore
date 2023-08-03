@@ -1,5 +1,4 @@
 ﻿*.pyc
-.dvc/config
 .idea
 .ipynb_checkpoints
 bones-scripts/

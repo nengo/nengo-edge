@@ -100,10 +100,7 @@ jobs:
       - name: DVC setup
         run: |
           pip install dvc[s3]
-          dvc remote add -d nengo-edge-dvc s3://abr/nengo-edge-dvc
-          dvc remote modify nengo-edge-dvc endpointurl https://nyc3.digitaloceanspaces.com
-          dvc remote modify nengo-edge-dvc access_key_id NMMHMT3KS6UOPTUVI4I6
-          dvc remote modify nengo-edge-dvc secret_access_key ${{ secrets.SPACES_SECRET }}
+          dvc remote modify --local nengo-edge-dvc secret_access_key ${{ secrets.SPACES_SECRET }}
           dvc pull
       - uses: nengo/nengo-bones/actions/generate-and-check@main
         with:
