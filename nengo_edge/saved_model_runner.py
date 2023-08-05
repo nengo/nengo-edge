@@ -37,16 +37,27 @@ class SavedModelRunner:
 
         Returns
         -------
-        outputs : ``np.ndarray``
+        outputs : np.ndarray
             Model output values (with shape ``(batch_size, output_d)`` if
             the model was built to return only the final time step,
             else ``(batch_size, output_steps, output_d)``).
         """
 
-        inputs = tf.cast(inputs, "float32")
-        batch_size = inputs.shape[0]
+        if inputs.dtype == object:
+            if self.model_params["type"] == "kws":
+                raise NotImplementedError("KWS models do not support ragged inputs")
 
-        model_inputs = tf.nest.flatten(inputs)
+            # Convert ragged object arrays to padded dense Tensors with mask set
+            ragged_inputs = tf.ragged.stack(list(inputs))
+            masked_inputs = tf.cast(ragged_inputs.to_tensor(), "float32")
+            masked_inputs._keras_mask = tf.sequence_mask(ragged_inputs.row_lengths())
+        else:
+            masked_inputs = tf.cast(inputs, "float32")
+            # Set a no-op mask
+            masked_inputs._keras_mask = tf.ones(inputs.shape[:2], dtype="bool")
+
+        batch_size = masked_inputs.shape[0]
+        model_inputs = tf.nest.flatten(masked_inputs)
 
         if self.state is None:
             self.state = [
@@ -66,5 +77,11 @@ class SavedModelRunner:
 
         # Update saved state
         self.state = outputs[1:]
+
+        if not tf.reduce_all(getattr(outputs[0], "_keras_mask", True)):
+            outputs[0] = tf.RaggedTensor.from_tensor(
+                outputs[0],
+                lengths=tf.math.count_nonzero(outputs[0]._keras_mask, axis=1),
+            )
 
         return outputs[0].numpy()

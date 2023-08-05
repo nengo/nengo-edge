@@ -31,6 +31,7 @@ Release history
 
 - ``SavedModelRunner`` now uses Keras' SavedModel format, instead of the raw
   TensorFlow SavedModel format. (`#8`_)
+- ``SavedModelRunner`` can now take ragged ``object``-arrays as input. (`#8`_)
 
 .. _#6: https://github.com/nengo/nengo-edge/pull/6
 .. _#8: https://github.com/nengo/nengo-edge/pull/8

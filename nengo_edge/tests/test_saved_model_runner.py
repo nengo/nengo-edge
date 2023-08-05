@@ -7,6 +7,7 @@ import numpy as np
 import pytest
 import tensorflow as tf
 from nengo_edge_hw import gpu
+from nengo_edge_models.asr.models import conformer_tiny
 from nengo_edge_models.kws.models import lmu_small
 from nengo_edge_models.models import MFCC
 
@@ -37,13 +38,54 @@ def test_runner(
     output0 = interface.run(inputs)
 
     interface.export_model(tmp_path)
-
-    assert interface.binary_path is not None
     runner = SavedModelRunner(tmp_path)
 
     output1 = runner.run(inputs)
 
     assert np.allclose(output0, output1), np.max(np.abs(output0 - output1))
+
+
+@pytest.mark.parametrize("mode", ("model-only", "feature-only", "full"))
+def test_runner_ragged(
+    mode: str, rng: np.random.RandomState, seed: int, tmp_path: Path
+) -> None:
+    tf.keras.utils.set_random_seed(seed)
+
+    pipeline = conformer_tiny()
+    if mode == "feature-only":
+        pipeline.model = []
+    elif mode == "model-only":
+        pipeline.pre = []
+
+    interface = gpu.host.Interface(pipeline, build_dir=tmp_path, return_sequences=True)
+
+    inputs = rng.uniform(
+        -1, 1, size=(32,) + ((49, 80) if mode == "model-only" else (16000,))
+    ).astype("float32")
+
+    interface.export_model(tmp_path)
+    runner = SavedModelRunner(tmp_path)
+
+    inputs = np.array(
+        [
+            inputs[0, : int(inputs.shape[1] * 0.5)],
+            inputs[1, : int(inputs.shape[1] * 0.8)],
+        ],
+        dtype=object,
+    )
+    ragged_out = runner.run(inputs)
+    ragged_out0 = runner.run(inputs[0][None, ...])
+    ragged_out1 = runner.run(inputs[1][None, ...])
+    assert (1,) + ragged_out[0].shape == ragged_out0.shape
+    # note: increased tolerances here due to the conformer padding error that will
+    # be fixed when we switch to an LMU-based implementation
+    assert np.allclose(ragged_out[0][None, ...], ragged_out0, atol=2e-3), np.max(
+        abs(ragged_out[0] - ragged_out0)
+    )
+    assert (1,) + ragged_out[1].shape == ragged_out1.shape
+    assert np.allclose(ragged_out[1][None, ...], ragged_out1, atol=2e-3), np.max(
+        abs(ragged_out[1] - ragged_out1)
+    )
 
 
 def test_runner_streaming(
