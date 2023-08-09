@@ -126,7 +126,7 @@ class MicroRunner:
         """Send required runtime parameters before any inputs."""
 
         n_steps = np.shape(inputs)[1]
-        n_unroll = self.model_params["input_shape"][0]
+        n_unroll = self.model_params["n_unroll"]
 
         # Make sure data can be pieced into unroll sized chunks
         if n_steps % n_unroll != 0:
@@ -180,7 +180,7 @@ class MicroRunner:
         """Run the main model logic on the given inputs."""
 
         n_steps = np.shape(inputs)[1]
-        n_unroll = self.model_params["input_shape"][0]
+        n_unroll = self.model_params["n_unroll"]
 
         outputs = []
         with progress.Progress() as bar:

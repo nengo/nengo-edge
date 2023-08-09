@@ -19,10 +19,11 @@ def param_dir(tmp_path):
             "log_epsilon": 1e-12,
         },
         "model": {
-            "input_shape": [1, 20],
-            "output_shape": [1, 10],
+            "input_shape": [None, 20],
+            "output_shape": [None, 10],
             "state_shapes": [10, 10],
             "return_sequences": True,
+            "n_unroll": 1,
         },
         "version": {"nengo-edge": version},
     }

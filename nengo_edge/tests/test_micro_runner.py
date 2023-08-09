@@ -49,10 +49,7 @@ class MockSerial:
 
 
 def mock_runner(
-    tmp_path: Path,
-    n_unroll: int,
-    monkeypatch: pytest.MonkeyPatch,
-    type: str,
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, type: str
 ) -> MicroRunner:
     device_drive = tmp_path / "micro_device_drive"
     device_drive.mkdir(parents=True, exist_ok=True)
@@ -76,7 +73,13 @@ def mock_runner(
         size: int,
     ) -> np.ndarray:
         if self.model_params["return_sequences"]:
-            rxd_data = np.ones((n_unroll * (size // n_unroll)), dtype="float32")
+            rxd_data = np.ones(
+                (
+                    self.model_params["n_unroll"]
+                    * (size // self.model_params["n_unroll"])
+                ),
+                dtype="float32",
+            )
         else:
             rxd_data = np.ones((size), dtype="float32")
 
@@ -161,9 +164,7 @@ def test_runner(
 ) -> None:
     batch_size = 3
 
-    runner = mock_runner(
-        tmp_path=param_dir, n_unroll=1, monkeypatch=monkeypatch, type="disco"
-    )
+    runner = mock_runner(tmp_path=param_dir, monkeypatch=monkeypatch, type="disco")
     inputs = rng.uniform(-0.5, 0.5, size=(batch_size, 16000))
     with runner:
         # check that batched and non-batched models produce the
@@ -189,9 +190,7 @@ def test_runner_errors(
 ) -> None:
     batch_size = 3
 
-    runner = mock_runner(
-        tmp_path=param_dir, n_unroll=1, monkeypatch=monkeypatch, type="nordic"
-    )
+    runner = mock_runner(tmp_path=param_dir, monkeypatch=monkeypatch, type="nordic")
 
     inputs = rng.uniform(-0.5, 0.5, size=(batch_size, 10))
 
@@ -204,7 +203,7 @@ def test_runner_errors(
     runner.preprocessing["sample_rate"] = 16000
 
     # check n_steps % n_unroll != 0
-    runner.model_params["input_shape"][0] = 3
+    runner.model_params["n_unroll"] = 3
 
     inputs = rng.uniform(-0.5, 0.5, size=(16000,))
     with runner:
