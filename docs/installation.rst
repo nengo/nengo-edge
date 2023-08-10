@@ -25,7 +25,7 @@ we recommend using Mamba.
       and want your NengoEdge models to run on your Nvidia GPU.
 
       1. Download the
-         `Mambaforge installer <https://mamba.readthedocs.io/en/latest/installation.html#fresh-install>`_
+         `Mambaforge installer <https://mamba.readthedocs.io/en/latest/mamba-installation.html#fresh-install-recommended>`_
          for your OS and follow the installation instructions on that page.
 
       2. Open a terminal or command-line prompt
