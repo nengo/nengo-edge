@@ -20,6 +20,7 @@ extensions = [
     "nengo_sphinx_theme.ext.sourcelinks",
     "notfound.extension",
     "numpydoc",
+    "sphinx_click",
     "sphinx_tabs.tabs",
 ]
 
@@ -122,3 +123,4 @@ html_theme_options = {
         <!-- End Matomo Code -->
     """,
 }
+html_css_files = ["custom.css"]

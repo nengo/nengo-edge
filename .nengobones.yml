@@ -58,6 +58,7 @@ setup_py:
     - nengo-sphinx-theme>=20.9
     - numpydoc>=1.4.0
     - sounddevice>=0.4.5
+    - sphinx-click~=5.0.0
     - sphinx-tabs~=3.2.0 # more recent versions are incompatible with sphinx 3
   optional_req:
     - tensorflow>=2.10.0 # TODO: support earlier versions?
@@ -82,6 +83,7 @@ docs_conf_py:
   nengo_logo: nengo-edge-full-light.svg
   nengo_logo_color: "#5593c5"
   extensions:
+    - sphinx_click
     - sphinx_tabs.tabs
 
 pyproject_toml: {}

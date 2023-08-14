@@ -1,37 +1,20 @@
-***************
-NengoEdge Tools
-***************
-
-.. role:: raw-html(raw)
-   :format: html
-
-.. highlight:: shell
+***********************
+NengoEdge documentation
+***********************
 
 `NengoEdge <https://edge.nengo.ai/>`_ is a cloud-based platform for training and
-deploying high accuracy, low power audio AI models on edge devices. This package
-contains tools and examples to assist in taking a trained model exported from
-NengoEdge and deploying it in your own application.
+deploying high accuracy, low power audio AI models on edge devices.
 
-To get started running NengoEdge models locally,
-set up a Python environment using the installation instructions below.
-Then download the
-:raw-html:`<a href="examples/microphone-demo/microphone-demo.ipynb" download>live microphone demo notebook</a>`
-and open it with::
+.. cssclass:: toc-cards toc-cards-narrow
 
-  jupyter notebook /path/to/microphone-demo.ipynb
+   .. toctree::
+      :maxdepth: 1
+
+      tutorials/index
+      faq
+      developers
 
 .. raw:: html
 
-   <iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/sccLaootrGk" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+   <iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/vNfZuOU2nwM" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
 
-Learn more
-==========
-
-.. toctree::
-   :maxdepth: 2
-
-   installation
-   examples/microphone-demo/microphone-demo
-   examples/coral_demo
-   examples/micro_device_demo
-.. * :ref:`genindex`  TODO include once we generate API docs

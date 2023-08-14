@@ -22,6 +22,13 @@ Release history
 23.9.28 (unreleased)
 ====================
 
+**Added**
+
+- Updated documentation with new content (additional tutorials, CLI documentation,
+  FAQ section). (`#9`_)
+
+.. _#9: https://github.com/nengo/nengo-edge/pull/9
+
 23.9.27 (September 27, 2023)
 ============================
 

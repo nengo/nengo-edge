@@ -1,0 +1,4 @@
+{% include "templates/docs/conf.py.template" %}
+html_css_files = [
+    "custom.css"
+]
