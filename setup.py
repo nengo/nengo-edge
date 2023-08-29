@@ -32,6 +32,7 @@ version = runpy.run_path(str(root / "nengo_edge" / "version.py"))["version"]
 install_req = [
     "packaging>=20.9",
     "pyserial>=3.5",
+    "rich>=13.3.1",
     "tensorflow>=2.10.0",
 ]
 docs_req = [
@@ -39,7 +40,6 @@ docs_req = [
     "nbsphinx>=0.8.11",
     "nengo-sphinx-theme>=20.9",
     "numpydoc>=1.4.0",
-    "rich>=13.3.1",
     "sounddevice>=0.4.5",
     "sphinx-tabs~=3.2.0",
 ]
