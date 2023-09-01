@@ -7,7 +7,7 @@ import numpy as np
 import pytest
 import tensorflow as tf
 from nengo_edge_hw import gpu
-from nengo_edge_models.asr.models import conformer_tiny
+from nengo_edge_models.asr.models import lmuformer_tiny
 from nengo_edge_models.kws.models import lmu_small
 from nengo_edge_models.models import MFCC
 
@@ -51,7 +51,7 @@ def test_runner_ragged(
 ) -> None:
     tf.keras.utils.set_random_seed(seed)
 
-    pipeline = conformer_tiny()
+    pipeline = lmuformer_tiny()
     if mode == "feature-only":
         pipeline.model = []
     elif mode == "model-only":

@@ -85,6 +85,11 @@ jobs:
           path: nengo-edge
       - uses: actions/checkout@v3
         with:
+          repository: nengo/state-space
+          path: state-space
+          token: ${{ secrets.GH_TOKEN }}
+      - uses: actions/checkout@v3
+        with:
           repository: nengo/nengo-edge-models
           path: nengo-edge-models
           token: ${{ secrets.GH_TOKEN }}
@@ -95,6 +100,7 @@ jobs:
           token: ${{ secrets.GH_TOKEN }}
       - name: Install NengoEdge libraries
         run: |
+          pip install ../state-space
           pip install ../nengo-edge-models
           pip install ../nengo-edge-hw
       - name: DVC setup
