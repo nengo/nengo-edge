@@ -44,7 +44,7 @@ we recommend using Mamba.
       to run NengoEdge models by installing from the ``conda-forge`` channel.
 
       1. Download the
-         `Miniconda installer <https://docs.conda.io/en/latest/miniconda.html#latest-miniconda-installer-links>`_
+         `Miniconda installer <https://docs.conda.io/projects/miniconda/en/latest/#latest-miniconda-installer-links>`_
          for your OS and follow the installation instructions on that page.
 
       2. Open a terminal or command-line prompt and ensure conda is up to date.
