@@ -26,6 +26,8 @@ Release history
 
 - Added warning when a downloaded nengo-edge model artifacts' version does not 
   match local environment nengo-edge version. (`#6`_)
+- Added ``nengo-edge package-dataset`` CLI command, which can be used to validate
+  and package KWS and ASR datasets. (`#10`_)
   
 **Changed**
 
@@ -35,6 +37,7 @@ Release history
 
 .. _#6: https://github.com/nengo/nengo-edge/pull/6
 .. _#8: https://github.com/nengo/nengo-edge/pull/8
+.. _#10: https://github.com/nengo/nengo-edge/pull/10
 
 23.7.30 (July 30, 2023)
 =======================

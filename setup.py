@@ -30,9 +30,11 @@ root = pathlib.Path(__file__).parent
 version = runpy.run_path(str(root / "nengo_edge" / "version.py"))["version"]
 
 install_req = [
+    "click>=8.1.3",
     "packaging>=20.9",
     "pyserial>=3.5",
     "rich>=13.3.1",
+    "soundfile>=0.12.1",
     "tensorflow>=2.10.0",
 ]
 docs_req = [
@@ -48,6 +50,7 @@ tests_req = [
     "mypy>=0.901",
     "pytest>=7.1.1",
     "pytest-rng>=1.0.0",
+    "types-click>=7.1.0",
 ]
 
 setup(
@@ -84,4 +87,9 @@ setup(
         "Topic :: Scientific/Engineering",
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
     ],
+    entry_points={
+        "console_scripts": [
+            "nengo-edge=nengo_edge.cli:cli",
+        ],
+    },
 )

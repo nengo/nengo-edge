@@ -1,5 +1,6 @@
 """Tools for working with NengoEdge."""
 
+from nengo_edge import validate
 from nengo_edge.device_modules.coral_device import CoralDeviceRunner
 from nengo_edge.micro_runner import DiscoRunner, NordicRunner
 from nengo_edge.network_runner import CoralRunner

@@ -1,6 +1,8 @@
 import json
+from typing import Any
 
 import pytest
+from click.testing import CliRunner
 
 from nengo_edge.version import version
 
@@ -32,3 +34,21 @@ def param_dir(tmp_path):
         json.dump(params, f)
 
     return tmp_path
+
+
+@pytest.fixture
+def cli_runner() -> CliRunner:
+    """
+    A version of ``click.testing.CliRunner`` that echoes output to stdout.
+
+    This is useful as it allows pytest to capture the output like normal (rather
+    than the CliRunner eating it all).
+    """
+
+    class EchoCliRunner(CliRunner):
+        def invoke(self, *args: Any, **kwargs: Any) -> Any:
+            result = super().invoke(*args, **kwargs)
+            print(result.stdout)
+            return result
+
+    return EchoCliRunner()
