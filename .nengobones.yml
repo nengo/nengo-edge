@@ -29,6 +29,7 @@ ci_scripts:
   - template: docs
   - template: deploy
     wheel: true
+  - template: examples
 
 manifest_in:
   include:

@@ -57,20 +57,26 @@ jobs:
     needs:
       - static
     timeout-minutes: 60
-    runs-on: ubuntu-latest
     strategy:
       matrix:
         include:
           - script: test
             coverage-name: standard
+            runs-on: ubuntu-latest
           - script: test
             coverage-name: py3.8
             python: "3.8"
+            runs-on: ubuntu-latest
           - script: test
             coverage-name: py3.10
             python: "3.10"
+            runs-on: ubuntu-latest
           - script: docs
+            runs-on: [self-hosted, edge-devices]
+          - script: examples
+            runs-on: [self-hosted, edge-devices]
       fail-fast: false
+    runs-on: ${{ matrix.runs-on }}
     env:
       TF_VERSION: ${{ matrix.tf-version || 'tensorflow~=2.13.0' }}
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
@@ -108,6 +114,18 @@ jobs:
           pip install dvc[s3]
           dvc remote modify --local nengo-edge-dvc secret_access_key ${{ secrets.SPACES_SECRET }}
           dvc pull
+      - name: Docs setup
+        if: ${{ matrix.script == 'docs' }}
+        run: |
+          micromamba install pandoc
+      - name: Device setup
+        if: ${{ contains(matrix.runs-on, 'edge-devices') }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "Host $CORAL_HOSTNAME" | sudo tee ~/.ssh/config
+          echo "  IdentityFile /etc/coral-plugin/ssh-key" | sudo tee -a ~/.ssh/config
+          echo "  StrictHostKeyChecking no" | sudo tee -a ~/.ssh/config
+          sudo chmod 666 /dev/serial/disco
       - uses: nengo/nengo-bones/actions/generate-and-check@main
         with:
           path: nengo-edge

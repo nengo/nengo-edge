@@ -1,0 +1,6 @@
+outs:
+- md5: 163d6aa87efb7c33cf26bb48ee26223e.dir
+  size: 390807
+  nfiles: 2
+  hash: md5
+  path: micro_demo
