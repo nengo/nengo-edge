@@ -6,7 +6,7 @@ NengoEdge models use the `TensorFlow <https://www.tensorflow.org/>`_
 machine learning library. If you already have TensorFlow installed,
 then all you need is to::
 
-  pip install nengo-edge
+  pip install nengo-edge[optional]
 
 If you do not have TensorFlow installed, see the instructions below.
 

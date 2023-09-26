@@ -37,10 +37,13 @@ Release history
 - ``SavedModelRunner`` now uses Keras' SavedModel format, instead of the raw
   TensorFlow SavedModel format. (`#8`_)
 - ``SavedModelRunner`` can now take ragged ``object``-arrays as input. (`#8`_)
+- TensorFlow is now an optional dependency installed with 
+  ``pip install nengo-edge[optional]``. (`#13`_)
 
 .. _#6: https://github.com/nengo/nengo-edge/pull/6
 .. _#8: https://github.com/nengo/nengo-edge/pull/8
 .. _#10: https://github.com/nengo/nengo-edge/pull/10
+.. _#13: https://github.com/nengo/nengo-edge/pull/13
 
 23.7.30 (July 30, 2023)
 =======================

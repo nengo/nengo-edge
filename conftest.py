@@ -52,3 +52,12 @@ def cli_runner() -> CliRunner:
             return result
 
     return EchoCliRunner()
+
+
+def pytest_sessionstart(session: pytest.Session) -> None:
+    """Hook that runs on session start."""
+
+    try:
+        import tensorflow as tf  # pylint: disable=unused-import
+    except ImportError:  # pragma: no cover
+        pytest.exit("Tensorflow is not installed; cannot run tests.")

@@ -5,9 +5,13 @@ from pathlib import Path
 from typing import Any, Dict, List, Tuple, Union
 
 import numpy as np
-import tensorflow as tf
 
 from nengo_edge import config
+
+try:
+    import tensorflow as tf
+except ImportError:  # pragma: no cover
+    warnings.warn("TensorFlow is not installed; cannot use TFLiteRunner.")
 
 
 class TFLiteRunner:
@@ -92,7 +96,7 @@ class TFLiteRunner:
         return outputs
 
     def _resize_inputs(
-        self, interpreter: tf.lite.Interpreter, input_vals: List[np.ndarray]
+        self, interpreter: "tf.lite.Interpreter", input_vals: List[np.ndarray]
     ) -> None:
         reallocate = False
         for s0, s1 in zip(input_vals, interpreter.get_input_details()):

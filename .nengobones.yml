@@ -27,6 +27,8 @@ ci_scripts:
     pip_install:
       - $TF_VERSION
   - template: docs
+    pip_install:
+      - $TF_VERSION
   - template: deploy
     wheel: true
   - template: examples
@@ -44,7 +46,7 @@ setup_py:
     - pyserial>=3.5
     - rich>=13.3.1
     - soundfile>=0.12.1
-    - tensorflow>=2.10.0 # TODO: support earlier versions?
+    - numpy>=1.23.0
   tests_req:
     - mypy>=0.901
     - pytest>=7.1.1
@@ -57,6 +59,8 @@ setup_py:
     - numpydoc>=1.4.0
     - sounddevice>=0.4.5
     - sphinx-tabs~=3.2.0 # more recent versions are incompatible with sphinx 3
+  optional_req:
+    - tensorflow>=2.10.0 # TODO: support earlier versions?
   url: https://github.com/nengo/nengo-edge
   classifiers:
     - "Development Status :: 4 - Beta"

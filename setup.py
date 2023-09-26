@@ -35,7 +35,7 @@ install_req = [
     "pyserial>=3.5",
     "rich>=13.3.1",
     "soundfile>=0.12.1",
-    "tensorflow>=2.10.0",
+    "numpy>=1.23.0",
 ]
 docs_req = [
     "jupyter>=1.0.0",
@@ -45,7 +45,9 @@ docs_req = [
     "sounddevice>=0.4.5",
     "sphinx-tabs~=3.2.0",
 ]
-optional_req = []
+optional_req = [
+    "tensorflow>=2.10.0",
+]
 tests_req = [
     "mypy>=0.901",
     "pytest>=7.1.1",

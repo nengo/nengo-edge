@@ -1,12 +1,17 @@
 """Interface for running an exported NengoEdge model in SavedModel format."""
 
+import warnings
 from pathlib import Path
 from typing import List, Optional, Union
 
 import numpy as np
-import tensorflow as tf
 
 from nengo_edge import config
+
+try:
+    import tensorflow as tf
+except ImportError:  # pragma: no cover
+    warnings.warn("TensorFlow is not installed; cannot use SavedModelRunner.")
 
 
 class SavedModelRunner:
