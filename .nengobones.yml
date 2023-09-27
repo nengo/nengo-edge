@@ -30,7 +30,9 @@ ci_scripts:
   - template: deploy
     wheel: true
 
-manifest_in: {}
+manifest_in:
+  include:
+    - .dvc/config
 
 setup_py:
   author_email: edge-info@appliedbrainresearch.com
@@ -85,6 +87,6 @@ py_typed: {}
 
 version_py:
   type: calver
-  release: false
+  release: true
 
 license_rst: {}

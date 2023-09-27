@@ -38,3 +38,5 @@ global-exclude *-checkpoint.ipynb
 # Exclude all bytecode
 global-exclude *.pyc *.pyo *.pyd
 
+# Repo-specific files
+include .dvc/config

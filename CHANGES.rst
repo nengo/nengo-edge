@@ -19,8 +19,8 @@ Release history
    - Deprecated
    - Removed
 
-23.7.31 (unreleased)
-====================
+23.9.27 (September 27, 2023)
+============================
 
 **Added**
 
