@@ -10,6 +10,8 @@ from nengo_edge import config
 
 try:
     import tensorflow as tf
+
+    from nengo_edge import ragged  # pylint: disable=ungrouped-imports
 except ImportError:  # pragma: no cover
     warnings.warn("TensorFlow is not installed; cannot use SavedModelRunner.")
 
@@ -48,18 +50,12 @@ class SavedModelRunner:
             else ``(batch_size, output_steps, output_d)``).
         """
 
-        if inputs.dtype == object:
-            if self.model_params["type"] == "kws":
-                raise NotImplementedError("KWS models do not support ragged inputs")
+        if inputs.dtype == object and self.model_params["type"] == "kws":
+            raise NotImplementedError("KWS models do not support ragged inputs")
 
-            # Convert ragged object arrays to padded dense Tensors with mask set
-            ragged_inputs = tf.ragged.stack(list(inputs))
-            masked_inputs = tf.cast(ragged_inputs.to_tensor(), "float32")
-            masked_inputs._keras_mask = tf.sequence_mask(ragged_inputs.row_lengths())
-        else:
-            masked_inputs = tf.cast(inputs, "float32")
-            # Set a no-op mask
-            masked_inputs._keras_mask = tf.ones(inputs.shape[:2], dtype="bool")
+        ragged_inputs = ragged.to_tf(inputs)
+        ragged_inputs = tf.cast(ragged_inputs, "float32")
+        masked_inputs = ragged.to_masked(ragged_inputs)
 
         batch_size = masked_inputs.shape[0]
         model_inputs = tf.nest.flatten(masked_inputs)
@@ -83,10 +79,6 @@ class SavedModelRunner:
         # Update saved state
         self.state = outputs[1:]
 
-        if not tf.reduce_all(getattr(outputs[0], "_keras_mask", True)):
-            outputs[0] = tf.RaggedTensor.from_tensor(
-                outputs[0],
-                lengths=tf.math.count_nonzero(outputs[0]._keras_mask, axis=1),
-            )
+        outputs[0] = ragged.from_masked(outputs[0])
 
         return outputs[0].numpy()
