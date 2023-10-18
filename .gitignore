@@ -1,6 +1,7 @@
 ﻿*.pyc
 .idea
 .ipynb_checkpoints
+.pre-commit-config.yaml
 bones-scripts/
 docs/_build/
 nengo_edge.egg-info

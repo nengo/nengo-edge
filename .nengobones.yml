@@ -86,8 +86,6 @@ docs_conf_py:
 
 pyproject_toml: {}
 
-pre_commit_config_yaml: {}
-
 py_typed: {}
 
 version_py:
