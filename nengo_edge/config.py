@@ -10,7 +10,7 @@ import packaging
 from nengo_edge.version import version
 
 
-def load_params(directory: Path) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+def load_params(directory: Path) -> Tuple[Dict[str, Any], ...]:
     """Load parameters from file."""
 
     param_path = directory / "parameters.json"
@@ -20,9 +20,10 @@ def load_params(directory: Path) -> Tuple[Dict[str, Any], Dict[str, Any]]:
         params = json.load(f)
         model_params = params["model"]
         preprocessing = params["preprocessing"]
+        postprocessing = params["postprocessing"]
 
     check_params(params)
-    return model_params, preprocessing
+    return model_params, preprocessing, postprocessing
 
 
 def check_params(params: Dict[str, Any]) -> None:

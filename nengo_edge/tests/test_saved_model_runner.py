@@ -7,10 +7,13 @@ import numpy as np
 import pytest
 import tensorflow as tf
 from nengo_edge_hw import gpu
+from nengo_edge_models.asr.layers import Tokenizer
+from nengo_edge_models.asr.metrics import decode_predictions
 from nengo_edge_models.asr.models import lmuformer_tiny
 from nengo_edge_models.kws.models import lmu_small
 from nengo_edge_models.models import MFCC
 
+from nengo_edge import ragged
 from nengo_edge.saved_model_runner import SavedModelRunner
 
 
@@ -54,8 +57,20 @@ def test_runner_ragged(
     pipeline = lmuformer_tiny()
     if mode == "feature-only":
         pipeline.model = []
+        pipeline.post = []
+
     elif mode == "model-only":
         pipeline.pre = []
+        pipeline.post = []
+
+    elif mode == "full":
+        tokenizer = Tokenizer(
+            vocab_size=256,
+            corpus=Path(__file__).read_text(encoding="utf-8").splitlines(),
+        )
+        (tmp_path / "tokenizer").mkdir(parents=True, exist_ok=True)
+        tokenizer_path = tokenizer.save(tmp_path / "tokenizer")
+        pipeline.post[0].tokenizer_file = tokenizer_path
 
     interface = gpu.host.Interface(pipeline, build_dir=tmp_path, return_sequences=True)
 
@@ -76,16 +91,54 @@ def test_runner_ragged(
     ragged_out = runner.run(inputs)
     ragged_out0 = runner.run(inputs[0][None, ...])
     ragged_out1 = runner.run(inputs[1][None, ...])
-    assert (1,) + ragged_out[0].shape == ragged_out0.shape
-    # note: increased tolerances here due to the conformer padding error that will
-    # be fixed when we switch to an LMU-based implementation
-    assert np.allclose(ragged_out[0][None, ...], ragged_out0, atol=2e-3), np.max(
-        abs(ragged_out[0] - ragged_out0)
+
+    if mode != "full":
+        # test numerical output case
+        assert (1,) + ragged_out[0].shape == ragged_out0.shape
+        assert (1,) + ragged_out[1].shape == ragged_out1.shape
+        # note: increased tolerances here due to the conformer padding error that will
+        # be fixed when we switch to an LMU-based implementation
+        assert np.allclose(ragged_out[0][None, ...], ragged_out0, atol=2e-3), np.max(
+            abs(ragged_out[0] - ragged_out0)
+        )
+        assert np.allclose(ragged_out[1][None, ...], ragged_out1, atol=2e-3), np.max(
+            abs(ragged_out[1] - ragged_out1)
+        )
+    else:
+        # test string output case
+        assert len(ragged_out[0]) == len(ragged_out0[0])
+        assert len(ragged_out[1]) == len(ragged_out1[0])
+        assert ragged_out[0] == ragged_out0[0]
+        assert ragged_out[1] == ragged_out1[0]
+
+
+def test_asr_detokenization(
+    rng: np.random.RandomState,
+    seed: int,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    tf.keras.utils.set_random_seed(seed)
+
+    pipeline = lmuformer_tiny()
+    tokenizer = Tokenizer(
+        vocab_size=256,
+        corpus=Path(__file__).read_text(encoding="utf-8").splitlines(),
     )
-    assert (1,) + ragged_out[1].shape == ragged_out1.shape
-    assert np.allclose(ragged_out[1][None, ...], ragged_out1, atol=2e-3), np.max(
-        abs(ragged_out[1] - ragged_out1)
-    )
+    (tmp_path / "tokenizer").mkdir(parents=True, exist_ok=True)
+    tokenizer_path = tokenizer.save(tmp_path / "tokenizer")
+    pipeline.post[0].tokenizer_file = tokenizer_path
+
+    interface = gpu.host.Interface(pipeline, build_dir=tmp_path, return_sequences=True)
+    interface.export_model(tmp_path)
+
+    monkeypatch.setattr(SavedModelRunner, "_run_model", lambda s, x: x)  # type: ignore
+    runner = SavedModelRunner(tmp_path)
+
+    inputs = rng.uniform(0, 1, (32, 10, 257))
+    outputs = runner.run(inputs)
+    gt = decode_predictions(ragged.to_masked(inputs), tokenizer)
+    assert np.all(outputs == gt)
 
 
 def test_runner_streaming(

@@ -10,6 +10,7 @@ from nengo_edge import config
 
 try:
     import tensorflow as tf
+    from tensorflow_text import FastSentencepieceTokenizer
 
     from nengo_edge import ragged  # pylint: disable=ungrouped-imports
 except ImportError:  # pragma: no cover
@@ -24,7 +25,26 @@ class SavedModelRunner:
 
         self.model = tf.keras.saving.load_model(directory, compile=False)
 
-        self.model_params, self.preprocessing = config.load_params(self.directory)
+        self.model_params, self.preprocessing, self.postprocessing = config.load_params(
+            self.directory
+        )
+
+        if self.model_params["type"] == "asr":
+            if (
+                "tokenizer_file" in self.postprocessing
+                and (self.directory / self.postprocessing["tokenizer_file"]).exists()
+            ):
+                self.tokenizer = FastSentencepieceTokenizer(
+                    (
+                        self.directory / self.postprocessing["tokenizer_file"]
+                    ).read_bytes()
+                )
+            else:
+                self.tokenizer = None
+                warnings.warn(
+                    "No tokenizer model found, cannot decode ASR outputs. "
+                    "Consider re-downloading ASR run artifacts."
+                )
 
         self.reset_state()
 
@@ -33,9 +53,9 @@ class SavedModelRunner:
 
         self.state: Optional[List[tf.Tensor]] = None
 
-    def run(self, inputs: np.ndarray) -> np.ndarray:
+    def _run_model(self, inputs: np.ndarray) -> np.ndarray:
         """
-        Run the model on the given inputs.
+        Run the main model logic on the given inputs.
 
         Parameters
         ----------
@@ -44,14 +64,9 @@ class SavedModelRunner:
 
         Returns
         -------
-        outputs : np.ndarray
-            Model output values (with shape ``(batch_size, output_d)`` if
-            the model was built to return only the final time step,
-            else ``(batch_size, output_steps, output_d)``).
+        outputs : NDarray
+            Model output values in a ragged tensor.
         """
-
-        if inputs.dtype == object and self.model_params["type"] == "kws":
-            raise NotImplementedError("KWS models do not support ragged inputs")
 
         ragged_inputs = ragged.to_tf(inputs)
         ragged_inputs = tf.cast(ragged_inputs, "float32")
@@ -82,3 +97,38 @@ class SavedModelRunner:
         outputs[0] = ragged.from_masked(outputs[0])
 
         return outputs[0].numpy()
+
+    def run(self, inputs: np.ndarray) -> np.ndarray:
+        """
+        Run the model on the given inputs.
+
+        Also applies model type specific actions to outputs. For example,
+        ASR model outputs are automatically detokenized to construct
+        a string prediction.
+
+        Parameters
+        ----------
+        inputs : np.ndarray
+            Model input values (should have shape ``(batch_size, input_steps)``).
+
+        Returns
+        -------
+        outputs : np.ndarray
+            Model output values with shape ``(batch_size, output_steps, output_d)``
+            for KWS and ``(batch_size)`` for ASR.
+        """
+
+        if inputs.dtype == object and self.model_params["type"] == "kws":
+            raise NotImplementedError("KWS models do not support ragged inputs")
+
+        outputs = self._run_model(inputs)
+
+        # Detokenize asr outputs using greedy decoding
+        if self.model_params["type"] == "asr" and self.tokenizer is not None:
+            greedy_outputs = tf.math.argmax(
+                ragged.to_masked(outputs), axis=-1, output_type=tf.int32
+            )
+            greedy_outputs = tf.ragged.boolean_mask(greedy_outputs, greedy_outputs > 0)
+            outputs = self.tokenizer.detokenize(greedy_outputs).numpy()
+
+        return outputs

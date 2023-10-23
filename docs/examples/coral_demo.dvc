@@ -1,6 +1,6 @@
 outs:
-- md5: 2cc81b3f641e0fe680d9a86c4711a367.dir
-  size: 940441
+- md5: 0f04ef041a6f93f64c0f8840f7ad330c.dir
+  size: 940464
   nfiles: 2
   hash: md5
   path: coral_demo

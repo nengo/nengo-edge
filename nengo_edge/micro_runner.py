@@ -53,7 +53,7 @@ class MicroRunner:
         self.serial_path = Path(serial_path)
         self.device_path = Path(device_path)
         self.binary_name = binary_name
-        self.model_params, self.preprocessing = config.load_params(self.directory)
+        self.model_params, self.preprocessing = config.load_params(self.directory)[:2]
         self.uses_states = "state_shapes" in self.model_params.keys()
 
         # the amount of data that will be output by the model

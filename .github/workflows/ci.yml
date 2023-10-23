@@ -104,6 +104,9 @@ jobs:
           repository: nengo/nengo-edge-hw
           path: nengo-edge-hw
           token: ${{ secrets.GH_TOKEN }}
+      - name: Install system packages
+        run: |
+          micromamba install sentencepiece
       - name: Install NengoEdge libraries
         run: |
           pip install ../state-space

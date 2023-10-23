@@ -46,6 +46,7 @@ docs_req = [
 ]
 optional_req = [
     "tensorflow>=2.10.0",
+    "tensorflow-text>=2.13.0",
 ]
 tests_req = [
     "mypy>=0.901",

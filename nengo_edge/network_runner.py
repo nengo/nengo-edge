@@ -39,7 +39,7 @@ class NetworkRunner:
     ):
         self.directory = Path(directory)
         self.device_runner = Path(device_runner)
-        self.model_params, self.preprocessing = config.load_params(self.directory)
+        self.model_params, self.preprocessing = config.load_params(self.directory)[:2]
         self.return_sequences = self.model_params["return_sequences"]
 
         self.username = username

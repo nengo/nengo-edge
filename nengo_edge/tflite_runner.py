@@ -26,7 +26,7 @@ class TFLiteRunner:
 
     def __init__(self, directory: Union[str, Path]):
         self.directory = Path(directory)
-        self.model_params, self.preprocessing = config.load_params(self.directory)
+        self.model_params, self.preprocessing = config.load_params(self.directory)[:2]
 
         # Build interpreters
         model_path = self.directory / "model.tflite"

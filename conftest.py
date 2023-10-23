@@ -27,6 +27,10 @@ def param_dir(tmp_path):
             "return_sequences": True,
             "n_unroll": 1,
         },
+        "postprocessing": {
+            "vocab_size": 20,
+            "tokenizer_file": "sentencepiece_20.model",
+        },
         "version": {"nengo-edge": version},
     }
 

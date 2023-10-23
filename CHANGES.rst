@@ -38,7 +38,9 @@ Release history
   match local environment nengo-edge version. (`#6`_)
 - Added ``nengo-edge package-dataset`` CLI command, which can be used to validate
   and package KWS and ASR datasets. (`#10`_)
-  
+- ``SavedModelRunner.run`` now automatically decodes ASR model outputs via the exported 
+  sentencepiece tokenizer. (`#15`_)
+
 **Changed**
 
 - ``SavedModelRunner`` now uses Keras' SavedModel format, instead of the raw
@@ -51,6 +53,7 @@ Release history
 .. _#8: https://github.com/nengo/nengo-edge/pull/8
 .. _#10: https://github.com/nengo/nengo-edge/pull/10
 .. _#13: https://github.com/nengo/nengo-edge/pull/13
+.. _#15: https://github.com/nengo/nengo-edge/pull/15
 
 23.7.30 (July 30, 2023)
 =======================

@@ -14,6 +14,7 @@ setup_cfg:
       - serial
       - soundfile
       - tensorflow
+      - tensorflow_text
       - tflite_runtime
       - rich
 
@@ -62,6 +63,7 @@ setup_py:
     - sphinx-tabs~=3.2.0 # more recent versions are incompatible with sphinx 3
   optional_req:
     - tensorflow>=2.10.0 # TODO: support earlier versions?
+    - tensorflow-text>=2.13.0
   url: https://github.com/nengo/nengo-edge
   classifiers:
     - "Development Status :: 4 - Beta"
