@@ -100,9 +100,57 @@ which can allow them to handle larger learning rates more safely.
 In addition, the batch size is practically limited by the amount of GPU memory
 available. Selecting too large a batch size will cause out-of-memory errors.
 
+What are MFCCs and the Mel spectrum?
+====================================
+
+The `Mel scale <https://en.wikipedia.org/wiki/Mel_scale>`_ is a scale of pitch that more
+closely matches human perception than the frequency in Hz. It is used to convert
+the audio signals into features that are more meaningful for speech processing.
+
+`Mel-frequency cepstral coefficients (MFCCs) <https://en.wikipedia.org/wiki/Mel-frequency_cepstrum>`_
+are a way of representing a sound using the Mel spectrum. They are commonly used as
+features in speech models. NengoEdge will automatically compute MFCCs based on your
+selected parameters (see the *Run configuration* page for details).
+
+MFCC values may be further processed to reduce noise sensitivity using a discrete cosine
+transform (DCT). NengoEdge does this by default, but you can disable this by setting the
+DCT features to 0 in the *Audio preprocessing* section on the *Run configuration* page.
+
+What are the Activation type options?
+=====================================
+
+When configuring the network architecture in NengoEdge, some layers provide a choice of
+activation type. These options have been chosen to work well with the provided
+architecture and they should rarely need to be changed.
+
+``relu``, ``sigmoid``, and ``swish`` are non-linear activation functions and are
+commonly used in intermediate layers, while ``linear`` and ``softmax`` are usually used
+for the final output layers.
+
+* linear: Passes the input through unmodified.
+* relu: ``max(x, 0)``
+* sigmoid: ``1 / (1 + exp(-x))``
+* softmax: ``exp(x) / sum(exp(x))``
+* swish: ``x*sigmoid(x)``
+
+What are warmup steps?
+======================
+
+NengoEdge uses a learning rate scheduler to dynamically adjust the learning rate during
+training. For ASR models this scheduler starts with a very small learning rate that
+increases during the warmup phase, and then slowly decreases afterwards.
+
+When starting a new training run, this value should usually be 25--50% of the total
+training steps. When initializing training from a previously trained
+run this value can be much smaller; a good starting point would be around 5% of the
+training steps.
+
+Consider increasing the warmup steps if the model performance is oscillating or
+overfitting early on.
+
 Other questions?
 ================
 
 If you have a question that isn't answered here, use the contact form within the
-`NengoEdge application <https://edge.nengo.ai/contact-us>`_ to get in touch with us and we will
-do our best to help!
+`NengoEdge application <https://edge.nengo.ai/contact-us>`_ to get in touch with us and
+we will do our best to help!
