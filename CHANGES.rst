@@ -26,8 +26,17 @@ Release history
 
 - Updated documentation with new content (additional tutorials, CLI documentation,
   FAQ section). (`#9`_)
+- Added support for input string processing and NLP model inference in 
+  ``SavedModelRunner``. (`#17`_)
+
+**Changed**
+
+- ``SavedModelRunner`` tokenizer now uses ``SentencepieceTokenizer`` instead of
+  ``FastSentencepieceTokenizer`` to ensure compatibility with the core sentencepiece 
+  library. (`#17`_)
 
 .. _#9: https://github.com/nengo/nengo-edge/pull/9
+.. _#17: https://github.com/nengo/nengo-edge/pull/17
 
 23.9.27 (September 27, 2023)
 ============================
@@ -54,6 +63,8 @@ Release history
 .. _#10: https://github.com/nengo/nengo-edge/pull/10
 .. _#13: https://github.com/nengo/nengo-edge/pull/13
 .. _#15: https://github.com/nengo/nengo-edge/pull/15
+.. _#17: https://github.com/nengo/nengo-edge/pull/17
+
 
 23.7.30 (July 30, 2023)
 =======================
