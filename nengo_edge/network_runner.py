@@ -39,7 +39,9 @@ class NetworkRunner:
     ):
         self.directory = Path(directory)
         self.device_runner = Path(device_runner)
-        self.model_params, self.preprocessing = config.load_params(self.directory)[:2]
+        self.model_params, self.preprocessing, self.postprocessing = config.load_params(
+            self.directory
+        )
         self.return_sequences = self.model_params["return_sequences"]
 
         self.username = username
@@ -91,7 +93,13 @@ class NetworkRunner:
 
     def prepare_device_runner(self) -> None:  # pragma: no cover (needs device)
         """Send required runtime parameters/modules before any inputs."""
+        assert (
+            len(self.remote_dir.parts) > 2 and self.remote_dir.parts[1] == "tmp"
+        ), f"remote_dir ({self.remote_dir}) not in /tmp"
 
+        subprocess.run(
+            f"ssh {self.address} rm -rf {self.remote_dir}".split(), check=True
+        )
         subprocess.run(
             f"ssh {self.address} mkdir -p {self.remote_dir}".split(), check=True
         )

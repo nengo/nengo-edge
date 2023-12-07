@@ -3,7 +3,7 @@
 import json
 from pathlib import Path
 from string import ascii_lowercase
-from typing import Any, Dict, Literal
+from typing import Any, Dict, Literal, Tuple
 
 import numpy as np
 import pytest
@@ -19,6 +19,16 @@ from nengo_edge_models.nlp.models import LMUformerEncoderNLP, lmuformer_small_si
 
 from nengo_edge import ragged, version
 from nengo_edge.saved_model_runner import SavedModelRunner
+
+
+def new_tokenizer(tmp_path: Path) -> Tuple[Tokenizer, Path]:
+    tokenizer = Tokenizer(
+        vocab_size=256,
+        corpus=Path(__file__).read_text(encoding="utf-8").splitlines(),
+    )
+    (tmp_path / "tokenizer").mkdir(parents=True, exist_ok=True)
+    tokenizer_path = tokenizer.save(tmp_path / "tokenizer")
+    return tokenizer, tokenizer_path
 
 
 @pytest.mark.parametrize("mode", ("model-only", "feature-only", "full"))
@@ -60,12 +70,7 @@ def test_runner_ragged(
     tf.keras.utils.set_random_seed(seed)
 
     pipeline = lmuformer_tiny() if model_type == "asr" else lmuformer_small_sim()
-    tokenizer = Tokenizer(
-        vocab_size=256,
-        corpus=Path(__file__).read_text(encoding="utf-8").splitlines(),
-    )
-    (tmp_path / "tokenizer").mkdir(parents=True, exist_ok=True)
-    tokenizer_path = tokenizer.save(tmp_path / "tokenizer")
+    _, tokenizer_path = new_tokenizer(tmp_path)
 
     if model_type == "asr":
         assert isinstance(pipeline.post[0], TokenizerDesc)
@@ -149,12 +154,7 @@ def test_asr_detokenization(
     tf.keras.utils.set_random_seed(seed)
 
     pipeline = lmuformer_tiny()
-    tokenizer = Tokenizer(
-        vocab_size=256,
-        corpus=Path(__file__).read_text(encoding="utf-8").splitlines(),
-    )
-    (tmp_path / "tokenizer").mkdir(parents=True, exist_ok=True)
-    tokenizer_path = tokenizer.save(tmp_path / "tokenizer")
+    tokenizer, tokenizer_path = new_tokenizer(tmp_path)
     pipeline.post[0].tokenizer_file = tokenizer_path
 
     interface = gpu.host.Interface(pipeline, build_dir=tmp_path, return_sequences=True)
@@ -178,12 +178,7 @@ def test_nlp_tokenization(
     tf.keras.utils.set_random_seed(seed)
 
     pipeline = lmuformer_small_sim()
-    tokenizer = Tokenizer(
-        vocab_size=256,
-        corpus=Path(__file__).read_text(encoding="utf-8").splitlines(),
-    )
-    (tmp_path / "tokenizer").mkdir(parents=True, exist_ok=True)
-    tokenizer_path = tokenizer.save(tmp_path / "tokenizer")
+    tokenizer, tokenizer_path = new_tokenizer(tmp_path)
 
     assert isinstance(pipeline.pre[0], TokenizerDesc)
     assert isinstance(pipeline.model[1], LMUformerEncoderNLP)

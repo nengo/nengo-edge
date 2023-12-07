@@ -28,6 +28,8 @@ Release history
   FAQ section). (`#9`_)
 - Added support for input string processing and NLP model inference in 
   ``SavedModelRunner``. (`#17`_)
+- Added ``NetworkTokenizer`` class to perform remote calls to a device
+  CLI that supports sentencepiece tokenization. (`#17`_)
 
 **Changed**
 

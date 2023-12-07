@@ -26,6 +26,7 @@ def param_dir(tmp_path):
             "state_shapes": [10, 10],
             "return_sequences": True,
             "n_unroll": 1,
+            "type": "kws",
         },
         "postprocessing": {
             "vocab_size": 20,
