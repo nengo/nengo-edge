@@ -91,11 +91,6 @@ jobs:
           path: nengo-edge
       - uses: actions/checkout@v3
         with:
-          repository: nengo/state-space
-          path: state-space
-          token: ${{ secrets.GH_TOKEN }}
-      - uses: actions/checkout@v3
-        with:
           repository: nengo/tsp-ops
           path: tsp-ops
           token: ${{ secrets.GH_TOKEN }}
@@ -114,7 +109,6 @@ jobs:
           micromamba install sentencepiece
       - name: Install NengoEdge libraries
         run: |
-          pip install ../state-space
           pip install ../tsp-ops
           pip install ../nengo-edge-models
           pip install ../nengo-edge-hw
