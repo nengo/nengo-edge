@@ -37,6 +37,11 @@ Release history
   ``FastSentencepieceTokenizer`` to ensure compatibility with the core sentencepiece 
   library. (`#17`_)
 
+**Fixed**
+
+- Fixed model output decoding for ASR. ``SavedModelRunner`` now removes blank
+  tokens and merges repeating tokens before detokenization. (`#17`_)
+
 .. _#9: https://github.com/nengo/nengo-edge/pull/9
 .. _#17: https://github.com/nengo/nengo-edge/pull/17
 

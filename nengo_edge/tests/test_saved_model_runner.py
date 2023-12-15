@@ -73,8 +73,8 @@ def test_runner_ragged(
     _, tokenizer_path = new_tokenizer(tmp_path)
 
     if model_type == "asr":
-        assert isinstance(pipeline.post[0], TokenizerDesc)
-        pipeline.post[0].tokenizer_file = tokenizer_path
+        assert isinstance(pipeline.post[-1], TokenizerDesc)
+        pipeline.post[-1].tokenizer_file = tokenizer_path
     else:
         assert isinstance(pipeline.pre[0], TokenizerDesc)
         assert isinstance(pipeline.model[1], LMUformerEncoderNLP)
@@ -155,7 +155,8 @@ def test_asr_detokenization(
 
     pipeline = lmuformer_tiny()
     tokenizer, tokenizer_path = new_tokenizer(tmp_path)
-    pipeline.post[0].tokenizer_file = tokenizer_path
+    assert isinstance(pipeline.post[-1], TokenizerDesc)
+    pipeline.post[-1].tokenizer_file = tokenizer_path
 
     interface = gpu.host.Interface(pipeline, build_dir=tmp_path, return_sequences=True)
     interface.export_model(tmp_path)
@@ -163,7 +164,15 @@ def test_asr_detokenization(
     monkeypatch.setattr(SavedModelRunner, "_run_model", lambda s, x: x)
     runner = SavedModelRunner(tmp_path)
 
-    inputs = rng.uniform(0, 1, (32, 10, 257))
+    inputs = rng.uniform(0, 1, (32, 100, 257))
+    # ensure some blank tokens are in the sequences
+    # as well as repeats
+    for i in range(0, 32):
+        # repeats
+        inputs[i, i : i + 2] = i
+        # blank at the end of sequence
+        inputs[i, -1] = 256
+
     outputs = runner.run(inputs)
     gt = decode_predictions(ragged.to_masked(inputs), tokenizer)
     assert np.all(outputs == gt)

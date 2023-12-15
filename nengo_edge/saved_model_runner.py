@@ -163,12 +163,20 @@ class SavedModelRunner:
 
         outputs = self._run_model(inputs)
 
-        # Detokenize asr outputs using greedy decoding
+        # Detokenize asr outputs
         if self.model_params["type"] == "asr" and self.tokenizer is not None:
-            greedy_outputs = tf.math.argmax(
-                ragged.to_masked(outputs), axis=-1, output_type=tf.int32
-            )
-            greedy_outputs = tf.ragged.boolean_mask(greedy_outputs, greedy_outputs > 0)
-            outputs = self.tokenizer.detokenize(greedy_outputs).numpy()
+            # Apply CTC decoding
+            outputs = tf.keras.backend.ctc_decode(
+                tf.nn.softmax(ragged.to_masked(outputs)),
+                input_length=[len(x) for x in outputs],
+                greedy=True,
+            )[0][0]
+            outputs = tf.cast(outputs, "int32")
+
+            # Filter out blank/unknown tokens
+            outputs = tf.ragged.boolean_mask(outputs, outputs > 0)
+
+            # Convert tokens back to text
+            outputs = self.tokenizer.detokenize(outputs).numpy()
 
         return outputs
