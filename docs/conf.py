@@ -76,7 +76,7 @@ user_agent = "nengo_edge"
 
 project = "NengoEdge Tools"
 authors = "Applied Brain Research"
-copyright = "2022-2023 Applied Brain Research"
+copyright = "2022-2024 Applied Brain Research"
 version = ".".join(nengo_edge.__version__.split(".")[:2])  # Short X.Y version
 release = nengo_edge.__version__  # Full version, with tags
 

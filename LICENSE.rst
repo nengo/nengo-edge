@@ -4,7 +4,7 @@
 NengoEdge Tools license
 ***********************
 
-Copyright (c) 2022-2023 Applied Brain Research
+Copyright (c) 2022-2024 Applied Brain Research
 
 **MIT License**
 
