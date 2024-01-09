@@ -1,0 +1,5 @@
+outs:
+- md5: 0f3aa314133f89b5f9448d8b8448a4fe
+  size: 99444
+  hash: md5
+  path: feature_extractor.tflite

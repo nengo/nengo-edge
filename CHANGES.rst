@@ -42,8 +42,13 @@ Release history
 - Fixed model output decoding for ASR. ``SavedModelRunner`` now removes blank
   tokens and merges repeating tokens before detokenization. (`#17`_)
 
+**Removed**
+
+- Removed support for streaming in ``SavedModelRunner``. (`#19`_)
+
 .. _#9: https://github.com/nengo/nengo-edge/pull/9
 .. _#17: https://github.com/nengo/nengo-edge/pull/17
+.. _#19: https://github.com/nengo/nengo-edge/pull/19
 
 23.9.27 (September 27, 2023)
 ============================

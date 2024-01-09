@@ -45,13 +45,6 @@ class SavedModelRunner:
                     "Please re-download the NLP artifacts."
                 )
 
-        self.reset_state()
-
-    def reset_state(self) -> None:
-        """Reset the internal state of the model to initial conditions."""
-
-        self.state: Optional[List[tf.Tensor]] = None
-
     def get_tokenizer(
         self, params: Dict[str, str]
     ) -> Optional["SentencepieceTokenizer"]:
@@ -99,31 +92,11 @@ class SavedModelRunner:
         ragged_inputs = tf.cast(ragged_inputs, "float32")
         masked_inputs = ragged.to_masked(ragged_inputs)
 
-        batch_size = masked_inputs.shape[0]
         model_inputs = tf.nest.flatten(masked_inputs)
 
-        if self.state is None:
-            self.state = [
-                tf.zeros(
-                    [batch_size] + [0 if s is None else s for s in state.shape[1:]]
-                )
-                for state in self.model.inputs[1:]
-            ]
-        else:
-            if not all(s.shape[0] == batch_size for s in self.state):
-                raise ValueError(
-                    "Input batch size does not match saved state batch size; "
-                    "maybe you need to call reset_state()?"
-                )
+        output = tf.nest.flatten(self.model(model_inputs))[0]
 
-        outputs = tf.nest.flatten(self.model(model_inputs + self.state))
-
-        # Update saved state
-        self.state = outputs[1:]
-
-        outputs[0] = ragged.from_masked(outputs[0])
-
-        return outputs[0].numpy()
+        return ragged.from_masked(output).numpy()
 
     def run(self, inputs: Union[np.ndarray, List[str]]) -> np.ndarray:
         """

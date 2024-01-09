@@ -1,0 +1,5 @@
+outs:
+- md5: 0a5b62c777ab5e6b61649dae17e743fb
+  size: 399
+  hash: md5
+  path: parameters.json
