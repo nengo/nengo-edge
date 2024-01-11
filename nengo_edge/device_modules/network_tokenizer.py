@@ -1,7 +1,8 @@
 """Interface for running an exported SentencePiece tokenizer on network accessible
 devices."""
 
-import subprocess
+# TODO: move this to network_runner.py
+
 from pathlib import Path
 from typing import List, Union
 
@@ -18,13 +19,16 @@ class NetworkTokenizer(NetworkRunner):
     Can be used to tokenize and detokenize values for asr and nlp inference.
     """
 
-    def __init__(self, directory: Union[str, Path], username: str, hostname: str):
+    def __init__(
+        self,
+        directory: Union[str, Path],
+        username: str,
+        hostname: str,
+        local: bool = False,
+    ):
         super().__init__(
-            directory=directory, device_runner="", username=username, hostname=hostname
+            directory=directory, username=username, hostname=hostname, local=local
         )
-
-        if self.model_params["type"] not in ["asr", "nlp"]:
-            raise ValueError("Tokenizers are only supported for ASR and NLP models.")
 
         self.tokenizer_file = None
         for params in [self.preprocessing, self.postprocessing]:
@@ -32,32 +36,12 @@ class NetworkTokenizer(NetworkRunner):
                 self.tokenizer_file = params["tokenizer_file"]
 
         if self.tokenizer_file is None:
-            raise ValueError(
-                f"Cannot find entry for tokenizer_file in "
-                f"{self.directory}/parameters.json."
-            )
+            raise TypeError("Exported config does not contain any tokenizers")
 
-        self.remote_dir = Path("/tmp/nengo-edge-tokenizer")
-
-    def prepare_device_runner(self) -> None:  # pragma: no cover (needs device)
-        """Send required runtime parameters/modules before any inputs."""
-        assert (
-            len(self.remote_dir.parts) > 2 and self.remote_dir.parts[1] == "tmp"
-        ), f"remote_dir ({self.remote_dir}) not in /tmp"
-
-        subprocess.run(
-            f"ssh {self.address} rm -rf {self.remote_dir}".split(), check=True
-        )
-        subprocess.run(
-            f"ssh {self.address} mkdir -p {self.remote_dir}".split(), check=True
-        )
-
-        # copy files to remote
-        assert self.tokenizer_file is not None
+        # Copy files to remote
         self._scp([self.directory / self.tokenizer_file])
-        self.prepared = True
 
-    def tokenize(self, input_text: str) -> List[int]:  # pragma: no cover (needs device)
+    def tokenize(self, input_text: str) -> List[int]:
         """
         Map strings to their corresponding integer tokens.
 
@@ -75,23 +59,17 @@ class NetworkTokenizer(NetworkRunner):
             A list of integers of length ``(n_tokens)``.
         """
         assert self.tokenizer_file is not None
-        cmd = (
-            f"ssh {self.address} spm_encode"
+        output = self._ssh(
+            f"spm_encode"
             f" --model={self.remote_dir / self.tokenizer_file}"
-            f" --output_format=id"
-        )
-        output = subprocess.run(
-            cmd.split(),
-            input=input_text,
-            encoding="utf-8",
-            capture_output=True,
-            check=True,
-        )
-        token_string = output.stdout.rstrip()
+            f" --output_format=id",
+            std_in=input_text.encode("utf-8"),
+        ).decode("utf-8")
+        token_string = output.rstrip()
         token_ids = [int(token) for token in token_string.split()]
         return token_ids
 
-    def detokenize(self, inputs: np.ndarray) -> str:  # pragma: no cover (needs device)
+    def detokenize(self, inputs: np.ndarray) -> str:
         """
         Map integer tokens to their corresponding string token.
 
@@ -114,25 +92,17 @@ class NetworkTokenizer(NetworkRunner):
         token_string = " ".join([str(token) for token in inputs[inputs != -1]])
 
         assert self.tokenizer_file is not None
-        cmd = (
-            f"ssh {self.address} spm_decode"
+        output = self._ssh(
+            f"spm_decode"
             f" --model={self.remote_dir / self.tokenizer_file}"
-            f" --input_format=id"
-        )
-        output = subprocess.run(
-            cmd.split(),
-            input=token_string,
-            encoding="utf-8",
-            capture_output=True,
-            check=True,
-        )
-        decoded_text = output.stdout.rstrip()
+            f" --input_format=id",
+            std_in=token_string.encode("utf-8"),
+        ).decode("utf-8")
+        decoded_text = output.rstrip()
         return decoded_text
 
     def run(self, inputs: Union[np.ndarray, List[str]]) -> np.ndarray:
         """Run the main tokenizer logic on the given inputs."""
-        if not self.prepared:
-            self.prepare_device_runner()
 
         if isinstance(inputs[0], str):
             outputs = np.asarray([self.tokenize(text) for text in inputs], dtype=object)

@@ -30,6 +30,7 @@ Release history
   ``SavedModelRunner``. (`#17`_)
 - Added ``NetworkTokenizer`` class to perform remote calls to a device
   CLI that supports sentencepiece tokenization. (`#17`_)
+- Added stdio-based CLI runner for ``np_mfcc``. (`#19`_)
 
 **Changed**
 

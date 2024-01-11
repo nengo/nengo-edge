@@ -150,6 +150,8 @@ class SavedModelRunner:
             outputs = tf.ragged.boolean_mask(outputs, outputs > 0)
 
             # Convert tokens back to text
-            outputs = self.tokenizer.detokenize(outputs).numpy()
+            outputs = np.asarray(
+                [s.decode("utf-8") for s in self.tokenizer.detokenize(outputs).numpy()]
+            )
 
         return outputs

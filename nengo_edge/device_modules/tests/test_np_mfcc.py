@@ -1,5 +1,11 @@
 # pylint: disable=missing-docstring
 
+import json
+import shutil
+import struct
+import subprocess
+from pathlib import Path
+
 import numpy as np
 import pytest
 import tensorflow as tf
@@ -19,7 +25,7 @@ def test_frame(rng: np.random.RandomState) -> None:
     assert np.allclose(y0, y1)
 
 
-def test_hann(rng: np.random.RandomState) -> None:
+def test_hann() -> None:
     y0 = tf.signal.hann_window(400, periodic=True, dtype=tf.float64)
     y1 = np_mfcc.periodic_hann(400)
 
@@ -122,3 +128,40 @@ def test_errors() -> None:
 
     with pytest.raises(ValueError, match="greater than Nyquist"):
         np_mfcc.spectrogram_to_mel_matrix(upper_edge_hertz=4001, audio_sample_rate=8000)
+
+
+def test_cli(rng: np.random.RandomState, tmp_path: Path) -> None:
+    options = MFCC()
+    x = rng.uniform(0, 2, size=(32, 16000)).astype("float32")
+
+    params = {
+        p: getattr(options, p)
+        for p in [
+            "window_size_ms",
+            "window_stride_ms",
+            "mel_num_bins",
+            "dct_num_features",
+            "sample_rate",
+            "mel_lower_edge_hertz",
+            "mel_upper_edge_hertz",
+            "log_epsilon",
+        ]
+    }
+
+    # Get output directly from feature extractor
+    feature_extractor = np_mfcc.LogMelFeatureExtractor(**params)
+    y0 = feature_extractor(x)
+
+    # Get output from CLI
+    (tmp_path / "parameters.json").write_text(json.dumps({"preprocessing": params}))
+    shutil.copyfile(np_mfcc.__file__, tmp_path / "np_mfcc.py")
+    cli_output = subprocess.check_output(
+        f"python np_mfcc.py {x.shape[0]} {x.nbytes}".split(),
+        input=x.tobytes(),
+        cwd=tmp_path,
+    )
+
+    (n_steps,) = struct.unpack("<I", cli_output[:4])
+    y1 = np.frombuffer(cli_output[4:], dtype="float32").reshape(x.shape[0], n_steps, -1)
+
+    np.testing.assert_allclose(y0, y1)

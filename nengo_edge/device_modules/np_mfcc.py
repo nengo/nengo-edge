@@ -23,6 +23,11 @@ can run on on-device CPUs.
 """
 
 
+import argparse
+import json
+import struct
+import sys
+from pathlib import Path
 from typing import Union
 
 import numpy as np
@@ -358,3 +363,34 @@ class LogMelFeatureExtractor:
             features = np.matmul(features, self.dct_matrix)
 
         return features
+
+
+def cli() -> None:  # pragma: no cover (tested in subprocess)
+    """Command line interface for running on device."""
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("batch_size", type=int)
+    parser.add_argument("n_bytes", type=int)
+    parser.add_argument("--directory", type=str, default=None)
+    args = parser.parse_args()
+
+    directory = (
+        Path(__file__).parent if args.directory is None else Path(args.directory)
+    )
+    with open(directory / "parameters.json", "r", encoding="utf-8") as f:
+        parameters = json.load(f)
+
+    feature_extractor = LogMelFeatureExtractor(**parameters["preprocessing"])
+
+    inputs = np.frombuffer(
+        sys.stdin.buffer.read(args.n_bytes), dtype="float32"
+    ).reshape((args.batch_size, -1))
+
+    output = feature_extractor(inputs)
+
+    sys.stdout.buffer.write(struct.pack("<I", output.shape[1]))
+    sys.stdout.buffer.write(output.astype("float32").tobytes())
+
+
+if __name__ == "__main__":  # pragma: no cover (runs on device)
+    cli()
