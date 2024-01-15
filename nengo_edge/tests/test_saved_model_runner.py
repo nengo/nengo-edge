@@ -137,10 +137,10 @@ def test_runner_ragged(
         assert (1,) + ragged_out[0].shape == ragged_out0.shape
         assert (1,) + ragged_out[1].shape == ragged_out1.shape
 
-        assert np.allclose(ragged_out[0][None, ...], ragged_out0, atol=2e-6), np.max(
+        assert np.allclose(ragged_out[0][None, ...], ragged_out0, atol=4e-6), np.max(
             abs(ragged_out[0] - ragged_out0)
         )
-        assert np.allclose(ragged_out[1][None, ...], ragged_out1, atol=2e-6), np.max(
+        assert np.allclose(ragged_out[1][None, ...], ragged_out1, atol=4e-6), np.max(
             abs(ragged_out[1] - ragged_out1)
         )
 

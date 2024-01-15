@@ -3,4 +3,4 @@
 ['remote "nengo-edge-dvc"']
     url = s3://abr/nengo-edge-dvc
     endpointurl = https://nyc3.digitaloceanspaces.com
-    access_key_id = DO008HGBEPPTY2UL9M7K
+    access_key_id = DO00ATUHVNVPYE23F3TJ
