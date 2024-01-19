@@ -37,6 +37,7 @@ Release history
 - ``SavedModelRunner`` tokenizer now uses ``SentencepieceTokenizer`` instead of
   ``FastSentencepieceTokenizer`` to ensure compatibility with the core sentencepiece 
   library. (`#17`_)
+- Moved ``device_modules/network_tokenizer.py`` to ``network_runner.py``. (`#19`_)
 
 **Fixed**
 
