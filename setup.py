@@ -41,8 +41,8 @@ docs_req = [
     "nengo-sphinx-theme>=20.9",
     "numpydoc>=1.4.0",
     "sounddevice>=0.4.5",
-    "sphinx-click~=5.0.0",
-    "sphinx-tabs~=3.2.0",
+    "sphinx-click>=5.0.0",
+    "sphinx-tabs>=3.2.0",
 ]
 optional_req = [
     "tensorflow>=2.10.0",
