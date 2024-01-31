@@ -5,6 +5,7 @@ devices.
 NengoEdge supports interfacing with STM32F746 Discovery and nRF52840 Dev boards
 via this runner.
 """
+
 import shutil
 import time
 import timeit
@@ -213,9 +214,11 @@ class MicroRunner:
                     self.send_data_burst(
                         serial_port=self.serial_port,
                         user_data=input_slice,
-                        state_data=None
-                        if index_slice > 0 or not self.uses_states
-                        else state_data,
+                        state_data=(
+                            None
+                            if index_slice > 0 or not self.uses_states
+                            else state_data
+                        ),
                     )
                     rxd_data = self.receive_data_burst(
                         serial_port=self.serial_port, size=self.recv_size
