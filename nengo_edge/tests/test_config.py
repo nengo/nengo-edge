@@ -1,5 +1,6 @@
 # pylint: disable=missing-docstring
 
+import warnings
 from pathlib import Path
 
 import pytest
@@ -20,7 +21,6 @@ def test_hw_artifact_compatibility() -> None:
 
     # assert no warning, passing case
     expected_hw_version = version.version
-    with pytest.warns(None) as recwarns:  # type: ignore
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
         config.check_params({"version": {"nengo-edge": expected_hw_version}})
-
-    assert len(recwarns) == 0
