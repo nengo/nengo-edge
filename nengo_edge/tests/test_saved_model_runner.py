@@ -10,11 +10,11 @@ import pytest
 import tensorflow as tf
 from nengo_edge_hw import gpu
 from nengo_edge_models.asr.metrics import decode_predictions
-from nengo_edge_models.asr.models import lmuformer_tiny
-from nengo_edge_models.kws.models import lmu_small
+from nengo_edge_models.asr.models import asr_tiny
+from nengo_edge_models.kws.models import kws_small
 from nengo_edge_models.layers import Tokenizer
 from nengo_edge_models.models import Tokenizer as TokenizerDesc
-from nengo_edge_models.nlp.models import LMUformerEncoderNLP, lmuformer_small_sim
+from nengo_edge_models.nlp.models import LMUformerEncoderNLP, nlp_sim_small
 
 from nengo_edge import ragged, version
 from nengo_edge.saved_model_runner import SavedModelRunner
@@ -39,7 +39,7 @@ def test_runner(
 ) -> None:
     tf.keras.utils.set_random_seed(seed)
 
-    pipeline = lmu_small()
+    pipeline = kws_small()
     if mode == "feature-only":
         pipeline.model = []
     elif mode == "model-only":
@@ -68,7 +68,7 @@ def test_runner_ragged(
 ) -> None:
     tf.keras.utils.set_random_seed(seed)
 
-    pipeline = lmuformer_tiny() if model_type == "asr" else lmuformer_small_sim()
+    pipeline = asr_tiny() if model_type == "asr" else nlp_sim_small()
     _, tokenizer_path = new_tokenizer(tmp_path)
 
     if model_type == "asr":
@@ -152,7 +152,7 @@ def test_asr_detokenization(
 ) -> None:
     tf.keras.utils.set_random_seed(seed)
 
-    pipeline = lmuformer_tiny()
+    pipeline = asr_tiny()
     tokenizer, tokenizer_path = new_tokenizer(tmp_path)
     assert isinstance(pipeline.post[-1], TokenizerDesc)
     pipeline.post[-1].tokenizer_file = tokenizer_path
@@ -185,7 +185,7 @@ def test_nlp_tokenization(
 ) -> None:
     tf.keras.utils.set_random_seed(seed)
 
-    pipeline = lmuformer_small_sim()
+    pipeline = nlp_sim_small()
     tokenizer, tokenizer_path = new_tokenizer(tmp_path)
 
     assert isinstance(pipeline.pre[0], TokenizerDesc)
@@ -222,7 +222,7 @@ def test_runner_error_warnings(tmp_path: Path) -> None:
     }
 
     interface = gpu.host.Interface(
-        lmu_small(), build_dir=tmp_path, return_sequences=True
+        kws_small(), build_dir=tmp_path, return_sequences=True
     )
     interface.export_model(tmp_path)
     # overwrite exported parameters

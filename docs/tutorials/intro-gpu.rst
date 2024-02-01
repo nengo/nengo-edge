@@ -73,7 +73,7 @@ so there's no downside to a test run.*
 4. Set the run parameters.
 
    - We will use the name "Directions test 1"
-   - We will use the LMU-large network to leverage the power of LMUs
+   - We will use the kws-large network to leverage the power of LMUs
    - We will set the number of training steps to 2000
    - We will set the validation interval to 100
 
