@@ -32,12 +32,12 @@ jobs:
         with:
           python-version: "3.9"
           path: nengo-edge
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           repository: nengo/nengo-edge-models
           path: nengo-edge-models
           token: ${{ secrets.GH_TOKEN }}
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           repository: nengo/nengo-edge-hw
           path: nengo-edge-hw
@@ -89,17 +89,17 @@ jobs:
         with:
           python-version: ${{ matrix.python || '3.9' }}
           path: nengo-edge
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           repository: nengo/tsp-ops
           path: tsp-ops
           token: ${{ secrets.GH_TOKEN }}
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           repository: nengo/nengo-edge-models
           path: nengo-edge-models
           token: ${{ secrets.GH_TOKEN }}
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           repository: nengo/nengo-edge-hw
           path: nengo-edge-hw
@@ -136,7 +136,7 @@ jobs:
         with:
           name: ${{ matrix.script }}
           path: nengo-edge
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: ${{ always() && matrix.coverage-name }}
         with:
           name: coverage-${{ matrix.coverage-name }}
@@ -161,7 +161,7 @@ jobs:
       - name: Write .pypirc to file
         run: |
           echo '${{ secrets.PYPIRC_FILE }}' > ~/.pypirc
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: nengo/nengo-bones/actions/setup@main
         with:
           python-version: "3.10"
