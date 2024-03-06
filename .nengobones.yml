@@ -94,6 +94,6 @@ py_typed: {}
 
 version_py:
   type: calver
-  release: false
+  release: true
 
 license_rst: {}
