@@ -19,6 +19,9 @@ Release history
    - Deprecated
    - Removed
 
+24.3.7 (unreleased)
+===================
+
 24.3.6 (March 6, 2024)
 ======================
 
