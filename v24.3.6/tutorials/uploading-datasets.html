@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Use your own keyword spotting data in NengoEdge &#8212; NengoEdge Tools 24.3.6 docs</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=eeb27264" />
+    <link rel="stylesheet" type="text/css" href="../_static/nengo.css?v=1e9b7ed3" />
+    <link rel="stylesheet" type="text/css" href="../_static/tabs.css?v=a5c4661c" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=cb7e4283" />
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400;1,500;1,700&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css" integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous">
+<style>
+ body .title-bar,
+ body .documentation-source h1:after {
+   background-color: #5593c5;
+ }
+</style>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/scrollreveal"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/stickyfill/2.1.0/stickyfill.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js" integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T" crossorigin="anonymous"></script>
+<!-- From basic/layout.html -->
+<script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+
+<script src="../_static/documentation_options.js?v=f74308ae"></script>
+
+
+<script src="../_static/doctools.js?v=888ff710"></script>
+
+
+<script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+
+
+<script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-GT8XEDLTMJ"></script>
+        <script>
+         window.dataLayer = window.dataLayer || [];
+         function gtag(){dataLayer.push(arguments);}
+         gtag('js', new Date());
+         gtag('config', 'G-GT8XEDLTMJ');
+        </script>
+        <!-- End Google tag (gtag.js) -->
+        <!-- Matomo -->
+        <script>
+         var _paq = window._paq = window._paq || [];
+         _paq.push(["setDocumentTitle", document.domain + "/" + document.title]);
+         _paq.push(["setCookieDomain", "*.appliedbrainresearch.com"]);
+         _paq.push(["setDomains", ["*.appliedbrainresearch.com","*.edge.nengo.ai","*.forum.nengo.ai","*.nengo.ai"]]);
+         _paq.push(["enableCrossDomainLinking"]);
+         _paq.push(["setDoNotTrack", true]);
+         _paq.push(['trackPageView']);
+         _paq.push(['enableLinkTracking']);
+         (function() {
+           var u="https://appliedbrainresearch.matomo.cloud/";
+           _paq.push(['setTrackerUrl', u+'matomo.php']);
+           _paq.push(['setSiteId', '3']);
+           var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+           g.async=true; g.src='//cdn.matomo.cloud/appliedbrainresearch.matomo.cloud/matomo.js'; s.parentNode.insertBefore(g,s);
+         })();
+        </script>
+        <!-- End Matomo Code -->
+    
+    <link rel="icon" href="../_static/favicon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Deploying a model with live microphone input" href="../examples/microphone-demo/microphone-demo.html" />
+    <link rel="prev" title="Fast keyword detection with LMUs on GPU" href="intro-gpu.html" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+  </head><body class="bg-dark"><!-- prettier-ignore -->
+
+
+<header class="fixed-top header-top shadow-sm">
+  <nav class="navbar navbar-expand-md navbar-light bg-white">
+    <a class="navbar-brand" href="https://www.nengo.ai/">
+      <img src="https://www.nengo.ai/design/_images/general-full-light.svg" alt="Nengo" class="logo" />
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-collapse"
+      aria-controls="navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbar-collapse">
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="https://www.nengo.ai/">What is Nengo?</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="https://www.nengo.ai/examples/">Examples</a>
+        </li>
+        <li class="nav-item dropdown active">
+          <a class="nav-link dropdown-toggle text-nowrap" id="navbar-dropdown-docs" data-toggle="dropdown"
+            aria-haspopup="true" aria-expanded="false" href="#">Documentation</a>
+          <div class="dropdown-menu shadow-lg border-0" aria-labelledby="navbar-dropdown-docs">
+            
+            <a class="dropdown-item" href="https://www.nengo.ai/nengo/">Nengo core</a>
+            <a class="dropdown-item" href="https://github.com/nengo/nengo-gui/">NengoGUI</a>
+            <a class="dropdown-item" href="https://www.nengo.ai/nengo-dl/">NengoDL</a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="https://www.nengo.ai/nengo-spa/">NengoSPA</a>
+            <a class="dropdown-item" href="https://www.nengo.ai/nengo-extras/">NengoExtras</a>
+            <a class="dropdown-item" href="https://arvoelke.github.io/nengolib-docs/">Nengolib</a>
+            <a class="dropdown-item" href="https://www.nengo.ai/keras-spiking">KerasSpiking</a>
+            <a class="dropdown-item" href="https://www.nengo.ai/pytorch-spiking">PyTorchSpiking</a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="https://www.nengo.ai/nengo-fpga/">NengoFPGA</a>
+            <a class="dropdown-item" href="https://www.nengo.ai/nengo-loihi/">NengoLoihi</a>
+            <a class="dropdown-item" href="https://www.nengo.ai/nengo-ocl/">NengoOCL</a>
+            <a class="dropdown-item" href="https://github.com/project-rig/nengo_spinnaker">NengoSpiNNaker</a>
+            <a class="dropdown-item" href="https://github.com/nengo/nengo-mpi">NengoMPI</a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="https://www.nengo.ai/documentation/">All documentation</a>
+          </div>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle text-nowrap" id="navbar-dropdown-community" data-toggle="dropdown"
+            aria-haspopup="true" aria-expanded="false" href="#">Community</a>
+          <div class="dropdown-menu shadow-lg border-0" aria-labelledby="navbar-dropdown-community">
+            <a class="dropdown-item" href="https://forum.nengo.ai">Forum</a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="https://www.nengo.ai/people/">People</a>
+            <a class="dropdown-item" href="https://www.nengo.ai/summer-school/">Summer school</a>
+            <a class="dropdown-item" href="https://www.nengo.ai/contributing/">Contributing</a>
+            <a class="dropdown-item" href="https://www.nengo.ai/publications/">Publications</a>
+            <a class="dropdown-item" href="https://www.nengo.ai/videos/">Videos</a>
+            <a class="dropdown-item" href="https://www.nengo.ai/conduct/">Code of conduct</a>
+            <a class="dropdown-item" href="https://www.nengo.ai/caa/">CAA</a>
+          </div>
+        </li>
+      </ul>
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item">
+          <a class="nav-link btn btn-success btn-sm text-white" href="https://www.nengo.ai/getting-started/">Getting
+            started</a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+</header>
+<div class="main-content gradient-top">
+  <div class="container-fluid">
+    <div class="row"><a class="toggle-sidenav d-block d-md-none" href="#"
+  ><i class="icon-close fa fa-fw fa-arrow-left"></i
+  ><i class="icon-open fa fa-fw fa-arrow-right"></i
+></a>
+<div role="complementary" class="sidenav col-4 col-xl-3 p-0 border-right">
+  <h3 class="pt-5 px-5">
+    <a href="../index.html">
+      <img
+        class="img-fluid documentation-image"
+        src="https://www.nengo.ai/design/_images/nengo-edge-full-light.svg"
+        alt="NengoEdge Tools"
+      />
+    </a>
+  </h3>
+<form class="px-5 py-3 my-0 border-bottom" action="../search.html" method="get">
+  <div class="form-group form-group-single">
+    <input type="text" name="q" class="form-control" placeholder="Search" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+    <button type="submit" class="btn btn-link">
+      <img src="https://www.nengo.ai/img/icon-search.svg" alt="Go" />
+    </button>
+  </div>
+</form><div class="p-5 toctree">
+  
+    <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Tutorials</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="intro-gpu.html">Fast keyword detection with LMUs on GPU</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Use your own keyword spotting data in NengoEdge</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#preparing-your-data">Preparing your data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#example">Example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#uploading-your-data">Uploading your data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#creating-new-datasets-from-your-data">Creating new datasets from your data</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/microphone-demo/microphone-demo.html">Deploying a model with live microphone input</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/coral-demo.html">Using the NengoEdge Coral Runner</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/micro-device-demo.html">Using the NengoEdge Micro Runner</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently asked questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developers.html">Developer tools</a></li>
+</ul>
+
+  
+  </div>
+  
+  <form class="p-5 my-0 border-top">
+    <div class="form-group">
+      <label class="text-gray">Version:</label>
+      <select class="custom-select" onchange="switchVersion(this);">
+        
+        
+        <option value="../../tutorials/uploading-datasets.html">latest</option>
+        
+        
+          
+        <option selected>v24.3.6</option>
+          
+        
+      </select>
+    </div>
+  </form>
+  
+</div>
+      
+
+      <div class="col-12 col-md-8 col-xl-9">
+        <div class="container">
+          <div class="row">
+            <div class="col-10 offset-1 pb-5 documentation-source" role="main">
+              
+              
+  <section id="use-your-own-keyword-spotting-data-in-nengoedge">
+<h1>Use your own keyword spotting data in NengoEdge<a class="headerlink" href="#use-your-own-keyword-spotting-data-in-nengoedge" title="Link to this heading">¶</a></h1>
+<link rel="canonical" href="https://appliedbrainresearch.com/blog/use-your-own-audio-data-in-nengoedge" /><p>If you want to train a model to detect custom keywords,
+you can upload your own labelled audio datasets to NengoEdge. Note that here we’ll be
+specifically discussing the keyword spotting (KWS) application type; other applications
+have their own dataset formats, see the Dataset upload page for each application type
+for more details.</p>
+<section id="preparing-your-data">
+<h2>Preparing your data<a class="headerlink" href="#preparing-your-data" title="Link to this heading">¶</a></h2>
+<p>Datasets in NengoEdge are split into
+three main folders named train, validation and test.
+Inside each of these main folders,
+labelled data is stored as <code class="docutils literal notranslate"><span class="pre">.wav</span></code>, <code class="docutils literal notranslate"><span class="pre">.flac</span></code> or <code class="docutils literal notranslate"><span class="pre">.mp3</span></code> files
+organized into sub-folders,
+where the name of each sub-folder is the keyword label.
+Place all audio samples associated with that label
+into the corresponding sub-folder,
+then create a <code class="docutils literal notranslate"><span class="pre">.tar.gz</span></code> archive containing
+your train, validation and test folders.</p>
+</section>
+<section id="example">
+<h2>Example<a class="headerlink" href="#example" title="Link to this heading">¶</a></h2>
+<p>In this example, we will use some of the dataset collected for training
+the <a class="reference external" href="https://www.youtube.com/watch?v=nIsK7dSXBo0">Loihi keyword spotter</a>.</p>
+<p>This dataset was originally organized into train, validation and test folders,
+with subfolders for each speaker.
+Each subfolder contains <code class="docutils literal notranslate"><span class="pre">.wav</span></code> files with structured filenames
+containing the speaker ID, keyword, and time at which the sample was recorded.</p>
+<img alt="https://uploads-ssl.webflow.com/635051b5ae517f8542a06c6f/6517119fd0b145049cb84fee_Screenshot%20from%202023-09-29%2014-03-12.png" src="https://uploads-ssl.webflow.com/635051b5ae517f8542a06c6f/6517119fd0b145049cb84fee_Screenshot%20from%202023-09-29%2014-03-12.png" />
+<p>In order to make this dataset compatible with NengoEdge,
+we wrote a short Python script
+(<a class="reference external" href="https://forum.nengo.ai/t/uploading-your-own-data-to-nengoedge/2527">organize-data.py</a>)
+to copy files around into the NengoEdge format,
+and ensure that all wav files can be loaded correctly.
+Feel free to use this script as a starting point for organizing your data!</p>
+<p>After running this script on the above data, we now have the directory structure that NengoEdge expects.</p>
+<img alt="https://uploads-ssl.webflow.com/635051b5ae517f8542a06c6f/651711f2f6b267c58614fe72_Screenshot%20from%202023-09-29%2014-05-25.png" src="https://uploads-ssl.webflow.com/635051b5ae517f8542a06c6f/651711f2f6b267c58614fe72_Screenshot%20from%202023-09-29%2014-05-25.png" />
+<p>We then create a compressed archive of this directory structure. We can do this using
+the <a class="reference internal" href="../developers.html"><span class="doc">nengo-edge package-dataset</span></a> command.</p>
+<img alt="https://uploads-ssl.webflow.com/635051b5ae517f8542a06c6f/65411179dfcf95515d52d429_package-dataset.png" src="https://uploads-ssl.webflow.com/635051b5ae517f8542a06c6f/65411179dfcf95515d52d429_package-dataset.png" />
+<p>We are now ready to upload this archive to NengoEdge.</p>
+</section>
+<section id="uploading-your-data">
+<h2>Uploading your data<a class="headerlink" href="#uploading-your-data" title="Link to this heading">¶</a></h2>
+<p>To upload your data, navigate to the <strong>Datasets</strong> page, accessible from the top navbar.</p>
+<img alt="https://uploads-ssl.webflow.com/635051b5ae517f8542a06c6f/6516f9a8f27e68c575c42d27_im4-100p.png" src="https://uploads-ssl.webflow.com/635051b5ae517f8542a06c6f/6516f9a8f27e68c575c42d27_im4-100p.png" />
+<p>Click the <strong>Upload new data</strong> button and you will see a window pop up.</p>
+<img alt="https://uploads-ssl.webflow.com/635051b5ae517f8542a06c6f/6516faabecea7439208c8fd4_Screenshot%20from%202023-09-29%2012-26-12.png" src="https://uploads-ssl.webflow.com/635051b5ae517f8542a06c6f/6516faabecea7439208c8fd4_Screenshot%20from%202023-09-29%2012-26-12.png" />
+<p>Give your data a name and select the file on your hard drive.
+Click the <strong>Upload</strong> button.</p>
+<p>You will see a box with a progress bar in the bottom right of NengoEdge.</p>
+<img alt="https://uploads-ssl.webflow.com/635051b5ae517f8542a06c6f/640b95ff17d12b0c61737154_RnIsYom5lFvXvHi1kbGBZiLT.png" src="https://uploads-ssl.webflow.com/635051b5ae517f8542a06c6f/640b95ff17d12b0c61737154_RnIsYom5lFvXvHi1kbGBZiLT.png" />
+<p>Once the upload is complete, your data will appear in the datasets list,
+though there is no dataset associated with it yet.</p>
+<img alt="https://uploads-ssl.webflow.com/635051b5ae517f8542a06c6f/6516fb4d9034ed7a6a7057fc_Screenshot%20from%202023-09-29%2012-28-53.png" src="https://uploads-ssl.webflow.com/635051b5ae517f8542a06c6f/6516fb4d9034ed7a6a7057fc_Screenshot%20from%202023-09-29%2012-28-53.png" />
+</section>
+<section id="creating-new-datasets-from-your-data">
+<h2>Creating new datasets from your data<a class="headerlink" href="#creating-new-datasets-from-your-data" title="Link to this heading">¶</a></h2>
+<p>Uploading raw data gives you the ability to
+create multiple datasets for use in training runs.
+To create a new dataset, click the <strong>New dataset</strong> button
+in the sections associated with your raw data on the <strong>Datasets</strong> page.</p>
+<p>With the example dataset from above,
+we created a dataset to classify the “aloha” keyword.
+All keywords not selected are grouped under the “unknown” label.
+Notice that the sample rate and clip duration are filled in according to the data,
+but can be changed if desired.
+Similarly, you can change the percentages associated with
+the amount of silence or unknown samples.</p>
+<img alt="https://uploads-ssl.webflow.com/635051b5ae517f8542a06c6f/6516fbb9af840aed4164ec5a_Screenshot%20from%202023-09-29%2012-30-43.png" src="https://uploads-ssl.webflow.com/635051b5ae517f8542a06c6f/6516fbb9af840aed4164ec5a_Screenshot%20from%202023-09-29%2012-30-43.png" />
+<p>The dataset you created can now be used in a run.
+See other tutorials like <a class="reference internal" href="intro-gpu.html"><span class="doc">Fast keyword detection with LMUs on GPU</span></a>
+to see how your dataset can be used to train a model.</p>
+<hr class="docutils" />
+<p><em>This tutorial was originally posted on</em>
+<a class="reference external" href="https://appliedbrainresearch.com/blog/use-your-own-audio-data-in-nengoedge"><em>appliedbrainresearch.com</em></a>.</p>
+</section>
+</section>
+
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div><footer class="text-light footer-main gradient-bottom-center">
+  <p class="text-center">
+    <a class="no-hover-line" href="https://appliedbrainresearch.com">
+      <img class="abr-logo" src="https://www.nengo.ai/img/abr-logo.svg" height="32" />
+    </a>
+    <a href="https://www.nengo.ai/">What is Nengo?</a>
+    <a href="https://www.nengo.ai/examples/">Examples</a>
+    <a href="https://www.nengo.ai/documentation/">Documentation</a>
+    <a href="https://www.nengo.ai/getting-started/">Getting started</a>
+    <a href="https://www.nengo.ai/privacy/">Privacy</a>
+  </p>
+  <p class="small text-center pb-0 mb-0">&copy; Applied Brain Research</p>
+</footer>
+<script>
+  function switchVersion(select) {
+    var option = select.selectedOptions[0];
+    if (option.hasAttribute("value")) {
+      window.location = option.value;
+    }
+  }
+</script>
+
+<script>
+  var elements = document.querySelectorAll('.sidenav');
+  Stickyfill.add(elements);
+</script>
+<script>
+  ScrollReveal().reveal(".fade-in", {
+      scale: 0.85,
+      duration: 1000,
+      delay: 250,
+      interval: 50
+  });
+</script>
+<script>
+  $('a.toggle-sidenav').on('click', function(e) {
+    e.preventDefault();
+    if ( $(this).hasClass('active') ) {
+      $(this).removeClass('active');
+      $('.sidenav').removeClass('open');
+    } else {
+      $(this).addClass('active');
+      $('.sidenav').addClass('open');
+    }
+  });
+</script>
+<script>
+  var lists = document.querySelectorAll('.toctree ul');
+  lists.forEach((ul) => {
+      ul.classList.add("nav");
+  });
+  var links = document.querySelectorAll('.toctree a');
+  links.forEach((link) => {
+      link.classList.add("nav-link");
+  });
+  $("body").scrollspy({target: ".sidenav"});
+</script>
+  </body>
+</html>

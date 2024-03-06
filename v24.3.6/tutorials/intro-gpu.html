@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Fast keyword detection with LMUs on GPU &#8212; NengoEdge Tools 24.3.6 docs</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=eeb27264" />
+    <link rel="stylesheet" type="text/css" href="../_static/nengo.css?v=1e9b7ed3" />
+    <link rel="stylesheet" type="text/css" href="../_static/tabs.css?v=a5c4661c" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=cb7e4283" />
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400;1,500;1,700&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css" integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous">
+<style>
+ body .title-bar,
+ body .documentation-source h1:after {
+   background-color: #5593c5;
+ }
+</style>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/scrollreveal"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/stickyfill/2.1.0/stickyfill.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js" integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T" crossorigin="anonymous"></script>
+<!-- From basic/layout.html -->
+<script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+
+<script src="../_static/documentation_options.js?v=f74308ae"></script>
+
+
+<script src="../_static/doctools.js?v=888ff710"></script>
+
+
+<script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+
+
+<script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
+
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-GT8XEDLTMJ"></script>
+        <script>
+         window.dataLayer = window.dataLayer || [];
+         function gtag(){dataLayer.push(arguments);}
+         gtag('js', new Date());
+         gtag('config', 'G-GT8XEDLTMJ');
+        </script>
+        <!-- End Google tag (gtag.js) -->
+        <!-- Matomo -->
+        <script>
+         var _paq = window._paq = window._paq || [];
+         _paq.push(["setDocumentTitle", document.domain + "/" + document.title]);
+         _paq.push(["setCookieDomain", "*.appliedbrainresearch.com"]);
+         _paq.push(["setDomains", ["*.appliedbrainresearch.com","*.edge.nengo.ai","*.forum.nengo.ai","*.nengo.ai"]]);
+         _paq.push(["enableCrossDomainLinking"]);
+         _paq.push(["setDoNotTrack", true]);
+         _paq.push(['trackPageView']);
+         _paq.push(['enableLinkTracking']);
+         (function() {
+           var u="https://appliedbrainresearch.matomo.cloud/";
+           _paq.push(['setTrackerUrl', u+'matomo.php']);
+           _paq.push(['setSiteId', '3']);
+           var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+           g.async=true; g.src='//cdn.matomo.cloud/appliedbrainresearch.matomo.cloud/matomo.js'; s.parentNode.insertBefore(g,s);
+         })();
+        </script>
+        <!-- End Matomo Code -->
+    
+    <link rel="icon" href="../_static/favicon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Use your own keyword spotting data in NengoEdge" href="uploading-datasets.html" />
+    <link rel="prev" title="Tutorials" href="index.html" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+  </head><body class="bg-dark"><!-- prettier-ignore -->
+
+
+<header class="fixed-top header-top shadow-sm">
+  <nav class="navbar navbar-expand-md navbar-light bg-white">
+    <a class="navbar-brand" href="https://www.nengo.ai/">
+      <img src="https://www.nengo.ai/design/_images/general-full-light.svg" alt="Nengo" class="logo" />
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-collapse"
+      aria-controls="navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbar-collapse">
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="https://www.nengo.ai/">What is Nengo?</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="https://www.nengo.ai/examples/">Examples</a>
+        </li>
+        <li class="nav-item dropdown active">
+          <a class="nav-link dropdown-toggle text-nowrap" id="navbar-dropdown-docs" data-toggle="dropdown"
+            aria-haspopup="true" aria-expanded="false" href="#">Documentation</a>
+          <div class="dropdown-menu shadow-lg border-0" aria-labelledby="navbar-dropdown-docs">
+            
+            <a class="dropdown-item" href="https://www.nengo.ai/nengo/">Nengo core</a>
+            <a class="dropdown-item" href="https://github.com/nengo/nengo-gui/">NengoGUI</a>
+            <a class="dropdown-item" href="https://www.nengo.ai/nengo-dl/">NengoDL</a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="https://www.nengo.ai/nengo-spa/">NengoSPA</a>
+            <a class="dropdown-item" href="https://www.nengo.ai/nengo-extras/">NengoExtras</a>
+            <a class="dropdown-item" href="https://arvoelke.github.io/nengolib-docs/">Nengolib</a>
+            <a class="dropdown-item" href="https://www.nengo.ai/keras-spiking">KerasSpiking</a>
+            <a class="dropdown-item" href="https://www.nengo.ai/pytorch-spiking">PyTorchSpiking</a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="https://www.nengo.ai/nengo-fpga/">NengoFPGA</a>
+            <a class="dropdown-item" href="https://www.nengo.ai/nengo-loihi/">NengoLoihi</a>
+            <a class="dropdown-item" href="https://www.nengo.ai/nengo-ocl/">NengoOCL</a>
+            <a class="dropdown-item" href="https://github.com/project-rig/nengo_spinnaker">NengoSpiNNaker</a>
+            <a class="dropdown-item" href="https://github.com/nengo/nengo-mpi">NengoMPI</a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="https://www.nengo.ai/documentation/">All documentation</a>
+          </div>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle text-nowrap" id="navbar-dropdown-community" data-toggle="dropdown"
+            aria-haspopup="true" aria-expanded="false" href="#">Community</a>
+          <div class="dropdown-menu shadow-lg border-0" aria-labelledby="navbar-dropdown-community">
+            <a class="dropdown-item" href="https://forum.nengo.ai">Forum</a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="https://www.nengo.ai/people/">People</a>
+            <a class="dropdown-item" href="https://www.nengo.ai/summer-school/">Summer school</a>
+            <a class="dropdown-item" href="https://www.nengo.ai/contributing/">Contributing</a>
+            <a class="dropdown-item" href="https://www.nengo.ai/publications/">Publications</a>
+            <a class="dropdown-item" href="https://www.nengo.ai/videos/">Videos</a>
+            <a class="dropdown-item" href="https://www.nengo.ai/conduct/">Code of conduct</a>
+            <a class="dropdown-item" href="https://www.nengo.ai/caa/">CAA</a>
+          </div>
+        </li>
+      </ul>
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item">
+          <a class="nav-link btn btn-success btn-sm text-white" href="https://www.nengo.ai/getting-started/">Getting
+            started</a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+</header>
+<div class="main-content gradient-top">
+  <div class="container-fluid">
+    <div class="row"><a class="toggle-sidenav d-block d-md-none" href="#"
+  ><i class="icon-close fa fa-fw fa-arrow-left"></i
+  ><i class="icon-open fa fa-fw fa-arrow-right"></i
+></a>
+<div role="complementary" class="sidenav col-4 col-xl-3 p-0 border-right">
+  <h3 class="pt-5 px-5">
+    <a href="../index.html">
+      <img
+        class="img-fluid documentation-image"
+        src="https://www.nengo.ai/design/_images/nengo-edge-full-light.svg"
+        alt="NengoEdge Tools"
+      />
+    </a>
+  </h3>
+<form class="px-5 py-3 my-0 border-bottom" action="../search.html" method="get">
+  <div class="form-group form-group-single">
+    <input type="text" name="q" class="form-control" placeholder="Search" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+    <button type="submit" class="btn btn-link">
+      <img src="https://www.nengo.ai/img/icon-search.svg" alt="Go" />
+    </button>
+  </div>
+</form><div class="p-5 toctree">
+  
+    <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Tutorials</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Fast keyword detection with LMUs on GPU</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#set-up-your-dataset">Set up your dataset</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#find-a-successful-test-run">Find a successful test run</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#set-up-a-full-training-run">Set up a full training run</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#test-and-deploy-the-trained-model">Test and deploy the trained model</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="uploading-datasets.html">Use your own keyword spotting data in NengoEdge</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/microphone-demo/microphone-demo.html">Deploying a model with live microphone input</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/coral-demo.html">Using the NengoEdge Coral Runner</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/micro-device-demo.html">Using the NengoEdge Micro Runner</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently asked questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developers.html">Developer tools</a></li>
+</ul>
+
+  
+  </div>
+  
+  <form class="p-5 my-0 border-top">
+    <div class="form-group">
+      <label class="text-gray">Version:</label>
+      <select class="custom-select" onchange="switchVersion(this);">
+        
+        
+        <option value="../../tutorials/intro-gpu.html">latest</option>
+        
+        
+          
+        <option selected>v24.3.6</option>
+          
+        
+      </select>
+    </div>
+  </form>
+  
+</div>
+      
+
+      <div class="col-12 col-md-8 col-xl-9">
+        <div class="container">
+          <div class="row">
+            <div class="col-10 offset-1 pb-5 documentation-source" role="main">
+              
+              
+  <section id="fast-keyword-detection-with-lmus-on-gpu">
+<h1>Fast keyword detection with LMUs on GPU<a class="headerlink" href="#fast-keyword-detection-with-lmus-on-gpu" title="Link to this heading">¶</a></h1>
+<link rel="canonical" href="https://appliedbrainresearch.com/blog/fast-keyword-detection-with-lmus-on-gpu" /><p>The Legendre Memory Unit (LMU) algorithm is a new alternative to LSTMs and Transformers
+with some <a class="reference external" href="https://arxiv.org/abs/2009.04465">key advantages</a>,
+especially at the edge.
+NengoEdge makes it easy to build LMU models with any dataset
+and deploy those models anywhere.
+In this article, we’ll show how easy it is to use NengoEdge
+to deploy a keyword detection model
+using LMUs on a general purpose Nvidia GPU.</p>
+<p>The goal of our model will be to add voice controls
+to a device that moves along two dimensions, like a plotter.
+We want to be able to say what direction to move,
+and to be able to stop it
+when it reaches the desired location by saying “stop.”</p>
+<section id="set-up-your-dataset">
+<h2>Set up your dataset<a class="headerlink" href="#set-up-your-dataset" title="Link to this heading">¶</a></h2>
+<p>The first step is to set up your dataset.
+In NengoEdge, you can upload your own raw audio files,
+or use the SpeechCommands audio files
+that are available when you create your account.
+Raw audio files are used to make Datasets,
+which let you specify how to use those raw audio files
+in your machine learning pipeline.</p>
+<img alt="https://uploads-ssl.webflow.com/635051b5ae517f8542a06c6f/639a796ab1537b601940bf7b_YaoCQLh6A6OnIxeFw3nqs-vM.png" src="https://uploads-ssl.webflow.com/635051b5ae517f8542a06c6f/639a796ab1537b601940bf7b_YaoCQLh6A6OnIxeFw3nqs-vM.png" />
+<ol class="arabic simple">
+<li><p>Click on <strong>Datasets</strong> in the top bar.</p></li>
+<li><p>Under the <strong>SpeechCommands v2</strong> heading, click <strong>New dataset</strong>.</p></li>
+<li><p>Give the dataset a name.
+We will use the name “Directions”</p></li>
+<li><p>Set the dataset parameters.
+We will select the keywords “up, down, left, right, stop”</p></li>
+<li><p>Click <strong>Create</strong>.</p></li>
+</ol>
+<img alt="https://uploads-ssl.webflow.com/635051b5ae517f8542a06c6f/639a796a570a4d9f563cc039_rykUVsArevhKk82ENHqOz9M_.png" src="https://uploads-ssl.webflow.com/635051b5ae517f8542a06c6f/639a796a570a4d9f563cc039_rykUVsArevhKk82ENHqOz9M_.png" />
+<p><em>If you’re unsure of what a parameter does,
+hovering over it will display a tooltip with more information.</em></p>
+</section>
+<section id="find-a-successful-test-run">
+<h2>Find a successful test run<a class="headerlink" href="#find-a-successful-test-run" title="Link to this heading">¶</a></h2>
+<p>We recommend doing at least one shorter test run
+to make sure that your longer run will yield good results.
+If you’re using your own raw audio files,
+you may need several test runs to find a good set of parameters.</p>
+<p><em>Training time can get expensive,
+so shorter test runs save money in the long run.
+You can reuse the weights from the short run as the starting point for longer runs,
+so there’s no downside to a test run.</em></p>
+<ol class="arabic simple">
+<li><p>Click on <strong>Runs</strong> in the top bar.</p></li>
+<li><p>Click on <strong>Create new project</strong> to organize the runs for this project.
+We will use the name “Directions”</p></li>
+<li><p>Under the Directions heading, click <strong>+KWS</strong> to create a new keyword spotting run.</p></li>
+<li><p>Set the run parameters.</p>
+<ul class="simple">
+<li><p>We will use the name “Directions test 1”</p></li>
+<li><p>We will use the kws-large network to leverage the power of LMUs</p></li>
+<li><p>We will set the number of training steps to 2000</p></li>
+<li><p>We will set the validation interval to 100</p></li>
+</ul>
+</li>
+<li><p>Click the Optimize button.</p></li>
+</ol>
+<img alt="https://uploads-ssl.webflow.com/635051b5ae517f8542a06c6f/639a796a3155c4b020fc1963_sJmE68vkvqHYx2cHkm6O-A16.png" src="https://uploads-ssl.webflow.com/635051b5ae517f8542a06c6f/639a796a3155c4b020fc1963_sJmE68vkvqHYx2cHkm6O-A16.png" />
+<p>These parameter will result in a run
+that finishes in around an hour,
+and will give more feedback on performance in these early training stages.</p>
+<p>The <strong>Progress</strong> tab gives you a rough idea of whether your test run is successful.</p>
+<img alt="https://uploads-ssl.webflow.com/635051b5ae517f8542a06c6f/63f7d1ad6c0317becb773a70_G3aHyh-J5L1YSrVdH_mr63CC.png" src="https://uploads-ssl.webflow.com/635051b5ae517f8542a06c6f/63f7d1ad6c0317becb773a70_G3aHyh-J5L1YSrVdH_mr63CC.png" />
+<p>In this case, our loss is going down steadily,
+and the validation accuracy reaches a good level,
+so we will consider this a successful test run.</p>
+<p><em>With the built in SpeechCommands v2 dataset,
+we expect performance to be very good using default run parameters.
+However, using your own dataset may require parameter tweaking.</em></p>
+<p>If this wasn’t the case, we can look at the <strong>Results</strong> tab
+to see where the model is underperforming to guide future test runs.</p>
+<img alt="https://uploads-ssl.webflow.com/635051b5ae517f8542a06c6f/63f7d1dd7ddcec5dfa353563_ISzW173mW1Hj5L77x_0o5z1r.png" src="https://uploads-ssl.webflow.com/635051b5ae517f8542a06c6f/63f7d1dd7ddcec5dfa353563_ISzW173mW1Hj5L77x_0o5z1r.png" />
+<p>The confusion matrix can identify specific labels (words)
+that are not being classified well,
+which can help direct data collection when using your own dataset.
+General accuracy metrics can help you identify other issues.
+Experiment with the run parameters
+to see how each parameter affects performance metrics
+if your accuracy numbers are too low.</p>
+</section>
+<section id="set-up-a-full-training-run">
+<h2>Set up a full training run<a class="headerlink" href="#set-up-a-full-training-run" title="Link to this heading">¶</a></h2>
+<p>Once you are satisfied with your test run,
+create a new run to train to convergence.</p>
+<ol class="arabic simple">
+<li><p>Click on <strong>Runs</strong> in the top bar.</p></li>
+<li><p>Under the <strong>Directions</strong> heading, click <strong>+KWS</strong>.</p></li>
+<li><p>Set the name to “Directions full 1”</p></li>
+<li><p>Click the drop-down next to <strong>Initial weights</strong>.
+Select the successful test run, “Directions test 1”.</p></li>
+<li><p>Set other run parameters.</p>
+<ul class="simple">
+<li><p>We will set the number of training steps to 20000</p></li>
+<li><p>We will set the validation interval to 500</p></li>
+</ul>
+</li>
+<li><p>Click the <strong>Optimize</strong> button.</p></li>
+</ol>
+<p>These parameter will result in a run that finishes in several hours,
+and will give coarse feedback compared to the test runs.</p>
+<img alt="https://uploads-ssl.webflow.com/635051b5ae517f8542a06c6f/63f7d21850631f96e18206c3_NllK0fPMJ58CEMQ1MdMm3fiA.png" src="https://uploads-ssl.webflow.com/635051b5ae517f8542a06c6f/63f7d21850631f96e18206c3_NllK0fPMJ58CEMQ1MdMm3fiA.png" />
+<p>You will see on the <strong>Progress</strong> page that initial performance
+will start around where the test run finished off.
+By the end of the optimization process, performance should be even better.
+In our case, we started at 93.94% accuracy and finished at 97.85% accuracy.</p>
+<p><em>If you want to deploy this model to an edge device,
+you can stop here and go to the tutorial for your target device.</em></p>
+</section>
+<section id="test-and-deploy-the-trained-model">
+<h2>Test and deploy the trained model<a class="headerlink" href="#test-and-deploy-the-trained-model" title="Link to this heading">¶</a></h2>
+<p>Your model is now ready to be deployed to your environment
+and used either by itself or as part of a larger system.
+Steps for integration will depend on your setup,
+but here we will show how to do a simple deployment
+using <a class="reference internal" href="../developers.html"><span class="doc">NengoEdge tools</span></a> and
+the <a class="reference external" href="https://www.tensorflow.org/guide/saved_model">SavedModel</a> format.</p>
+<p>NengoEdge tools is a Python package that assists in taking a trained model
+exported from NengoEdge and deploying it in your own application.
+We will use it to deploy the model we trained,
+which we will export in SavedModel format.</p>
+<img alt="https://uploads-ssl.webflow.com/635051b5ae517f8542a06c6f/63f7d25746323435ba3374bd_sx4j0NyGm8SxaBWJbllHEBQw.png" src="https://uploads-ssl.webflow.com/635051b5ae517f8542a06c6f/63f7d25746323435ba3374bd_sx4j0NyGm8SxaBWJbllHEBQw.png" />
+<ol class="arabic">
+<li><p>Install NengoEdge tools following <a class="reference internal" href="../developers.html"><span class="doc">these steps</span></a>.</p></li>
+<li><p>Download the <a class="reference internal" href="../examples/microphone-demo/microphone-demo.html"><span class="doc">live microphone demo</span></a>
+to a local directory.</p></li>
+<li><p>Open NengoEdge to the main <strong>Runs</strong> page.</p></li>
+<li><p>Click the <strong>Deploy</strong> icon next to the fully trained run.</p></li>
+<li><p>Under the <strong>Download model</strong> heading,
+click the <strong>Format</strong> dropdown and select <strong>Binary</strong>.</p></li>
+<li><p>Click the <strong>Download</strong> button.</p></li>
+<li><p>Extract the downloaded <code class="docutils literal notranslate"><span class="pre">artifact.zip</span></code>
+to the same directory as the live microphone demo.</p></li>
+<li><p>Open the demo with <code class="docutils literal notranslate"><span class="pre">jupyter</span> <span class="pre">notebook</span> <span class="pre">/path/to/microphone-demo.ipynb</span></code></p></li>
+<li><p>Edit the notebook to use the labels defined in the dataset.</p>
+<p><code class="docutils literal notranslate"><span class="pre">labels</span> <span class="pre">=</span> <span class="pre">[&quot;&lt;silence&gt;&quot;,</span> <span class="pre">&quot;&lt;unknown&gt;&quot;,</span> <span class="pre">&quot;up&quot;,</span> <span class="pre">&quot;down&quot;,</span> <span class="pre">&quot;left&quot;,</span> <span class="pre">&quot;right&quot;,</span> <span class="pre">&quot;stop&quot;]</span></code></p>
+</li>
+</ol>
+<p>After running each cell in the notebook,
+you should see the message “Press Enter to quit,”
+at which point you can speak into your microphone
+to see your model classify keywords in real time.</p>
+<hr class="docutils" />
+<p><em>This tutorial was originally posted on</em>
+<a class="reference external" href="https://appliedbrainresearch.com/blog/fast-keyword-detection-with-lmus-on-gpu"><em>appliedbrainresearch.com</em></a>.</p>
+</section>
+</section>
+
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div><footer class="text-light footer-main gradient-bottom-center">
+  <p class="text-center">
+    <a class="no-hover-line" href="https://appliedbrainresearch.com">
+      <img class="abr-logo" src="https://www.nengo.ai/img/abr-logo.svg" height="32" />
+    </a>
+    <a href="https://www.nengo.ai/">What is Nengo?</a>
+    <a href="https://www.nengo.ai/examples/">Examples</a>
+    <a href="https://www.nengo.ai/documentation/">Documentation</a>
+    <a href="https://www.nengo.ai/getting-started/">Getting started</a>
+    <a href="https://www.nengo.ai/privacy/">Privacy</a>
+  </p>
+  <p class="small text-center pb-0 mb-0">&copy; Applied Brain Research</p>
+</footer>
+<script>
+  function switchVersion(select) {
+    var option = select.selectedOptions[0];
+    if (option.hasAttribute("value")) {
+      window.location = option.value;
+    }
+  }
+</script>
+
+<script>
+  var elements = document.querySelectorAll('.sidenav');
+  Stickyfill.add(elements);
+</script>
+<script>
+  ScrollReveal().reveal(".fade-in", {
+      scale: 0.85,
+      duration: 1000,
+      delay: 250,
+      interval: 50
+  });
+</script>
+<script>
+  $('a.toggle-sidenav').on('click', function(e) {
+    e.preventDefault();
+    if ( $(this).hasClass('active') ) {
+      $(this).removeClass('active');
+      $('.sidenav').removeClass('open');
+    } else {
+      $(this).addClass('active');
+      $('.sidenav').addClass('open');
+    }
+  });
+</script>
+<script>
+  var lists = document.querySelectorAll('.toctree ul');
+  lists.forEach((ul) => {
+      ul.classList.add("nav");
+  });
+  var links = document.querySelectorAll('.toctree a');
+  links.forEach((link) => {
+      link.classList.add("nav-link");
+  });
+  $("body").scrollspy({target: ".sidenav"});
+</script>
+  </body>
+</html>
