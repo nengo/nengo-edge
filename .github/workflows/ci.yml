@@ -22,7 +22,6 @@ defaults:
 env:
   NENGO_EDGE_HW_REF: main
   NENGO_EDGE_MODELS_REF: main
-  TSP_OPS_REF: main
 
 jobs:
   static:
@@ -98,12 +97,6 @@ jobs:
           path: nengo-edge
       - uses: actions/checkout@v4
         with:
-          repository: nengo/tsp-ops
-          path: tsp-ops
-          token: ${{ secrets.GH_TOKEN }}
-          ref: ${{ env.TSP_OPS_REF }}
-      - uses: actions/checkout@v4
-        with:
           repository: nengo/nengo-edge-models
           path: nengo-edge-models
           token: ${{ secrets.GH_TOKEN }}
@@ -119,7 +112,6 @@ jobs:
           micromamba install sentencepiece
       - name: Install NengoEdge libraries
         run: |
-          pip install ../tsp-ops
           pip install ../nengo-edge-models
           pip install ../nengo-edge-hw
       - name: DVC setup
