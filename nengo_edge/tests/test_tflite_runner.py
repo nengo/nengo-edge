@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 import tensorflow as tf
 from nengo_edge_hw import coral
-from nengo_edge_models.kws.tests.test_models import _test_lmu
+from nengo_edge_models.kws.tests.test_train import kws_test_pipeline
 
 from nengo_edge.tflite_runner import TFLiteRunner
 
@@ -25,7 +25,7 @@ def test_runner_streaming(
     # export a test model
     monkeypatch.setattr(coral.host.Interface, "io_dtype", None)
     host = coral.host.Interface(
-        _test_lmu(),
+        kws_test_pipeline(),
         build_dir=tmp_path,
         use_device=False,
         return_sequences=return_sequences,
@@ -78,7 +78,7 @@ def test_runner_streaming(
 
 
 def test_runner_errors(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    model_desc = _test_lmu()
+    model_desc = kws_test_pipeline()
     model_desc.pre = []
     monkeypatch.setattr(coral.host.Interface, "io_dtype", None)
     host = coral.host.Interface(
@@ -98,7 +98,7 @@ def test_runner_errors(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_runner_quantized(tmp_path: Path, rng: np.random.RandomState) -> None:
-    model_desc = _test_lmu()
+    model_desc = kws_test_pipeline()
     host = coral.host.Interface(
         model_desc,
         build_dir=tmp_path,
