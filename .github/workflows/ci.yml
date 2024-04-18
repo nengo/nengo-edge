@@ -84,7 +84,7 @@ jobs:
       fail-fast: false
     runs-on: ${{ matrix.runs-on }}
     env:
-      TF_VERSION: ${{ matrix.tf-version || 'tensorflow~=2.13.0' }}
+      TF_VERSION: ${{ matrix.tf-version || 'tensorflow~=2.16.0' }}
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
     defaults:
       run:

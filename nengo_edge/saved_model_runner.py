@@ -9,6 +9,7 @@ import numpy as np
 from nengo_edge import config
 
 try:
+    import keras
     import tensorflow as tf
     from tensorflow_text import SentencepieceTokenizer
 
@@ -24,7 +25,7 @@ class SavedModelRunner:
     def __init__(self, directory: Union[str, Path]):
         self.directory = Path(directory)
 
-        self.model = tf.keras.saving.load_model(directory, compile=False)
+        self.model = keras.layers.TFSMLayer(directory)
 
         self.model_params, self.preprocessing, self.postprocessing = config.load_params(
             self.directory
@@ -92,9 +93,7 @@ class SavedModelRunner:
         ragged_inputs = tf.cast(ragged_inputs, "float32")
         masked_inputs = ragged.to_masked(ragged_inputs)
 
-        model_inputs = tf.nest.flatten(masked_inputs)
-
-        output = tf.nest.flatten(self.model(model_inputs))[0]
+        output = self.model(masked_inputs)
 
         return ragged.from_masked(output).numpy()
 

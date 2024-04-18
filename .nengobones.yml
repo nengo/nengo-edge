@@ -62,7 +62,7 @@ setup_py:
     - sphinx-click>=5.0.0
     - sphinx-tabs>=3.2.0
   optional_req:
-    - tensorflow>=2.10.0 # TODO: support earlier versions?
+    - tensorflow>=2.16.0
     - tensorflow-text>=2.13.0
   url: https://github.com/nengo/nengo-edge
   classifiers:
