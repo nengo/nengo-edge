@@ -263,7 +263,9 @@ class NetworkTokenizer(NetworkRunner):
         """Run the main tokenizer logic on the given inputs."""
 
         if isinstance(inputs[0], str):
-            outputs = np.asarray([self.tokenize(text) for text in inputs], dtype=object)
+            outputs: np.ndarray = np.asarray(
+                [self.tokenize(text) for text in inputs], dtype=object
+            )
         else:
             assert isinstance(inputs, np.ndarray)
 
