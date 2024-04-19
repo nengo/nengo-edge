@@ -28,9 +28,11 @@ ci_scripts:
     coverage: true
     pip_install:
       - $TF_VERSION
+      - git+https://github.com/nengo/keras-lmu@tf-2.16#egg=keras-lmu
   - template: docs
     pip_install:
       - $TF_VERSION
+      - git+https://github.com/nengo/keras-lmu@tf-2.16#egg=keras-lmu
   - template: deploy
     wheel: true
   - template: examples
