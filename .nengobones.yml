@@ -11,6 +11,7 @@ license: mit
 setup_cfg:
   mypy:
     ignore_missing_imports:
+      - keras
       - serial
       - soundfile
       - tensorflow
