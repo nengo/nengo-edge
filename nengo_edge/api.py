@@ -1,3 +1,5 @@
+"""Classes for interacting with the Nengo Edge Server via an API."""
+
 import os
 import time
 from datetime import datetime, timedelta
@@ -14,6 +16,8 @@ API_ROOT_KEY = "NENGO_EDGE_API_ROOT"
 
 
 class NengoEdgeTokenClient:
+    """Class to retrieve and manage tokens for the Nengo Edge API."""
+
     REQUESTS_TIMEOUT = 7
 
     def __init__(
@@ -52,6 +56,14 @@ class NengoEdgeTokenClient:
         )
 
     def has_unexpired_token(self) -> bool:
+        """
+        Check the cache for a token that is not expired.
+
+        Returns
+        -------
+        bool
+            Returns true if the token exists and is not expired.
+        """
         return (
             self.token_expiry is not None
             and self.token_expiry < datetime.now()
@@ -59,12 +71,37 @@ class NengoEdgeTokenClient:
         )
 
     def get_token(self, skip_cache: bool = False) -> str:
+        """
+        Retrieve a token from the cache or the authorization server.
+
+        This requires user interaction if there's not a valid token.
+
+        Parameters
+        ----------
+        skip_cache : bool
+            If true, always requests a new token.
+
+        Returns
+        -------
+        str
+            An access token.
+        """
         if skip_cache or not self.has_unexpired_token():
             return self.request_token()
         assert self.token is not None
         return self.token
 
     def request_token(self) -> str:
+        """
+        Retrieve a token from the authorization server.
+
+        This requires user interaction.
+
+        Returns
+        -------
+        str
+            An access token.
+        """
         device_code = self.get_device_code()
         requested_time = datetime.now()
         token_response = self.get_token_from_device_code(device_code)
@@ -75,6 +112,18 @@ class NengoEdgeTokenClient:
         return token
 
     def get_device_code(self) -> Dict[str, Any]:
+        """
+        Request a device code from the authorization server.
+
+        This requires user interaction if there's not a valid token.
+
+        See: https://datatracker.ietf.org/doc/html/rfc8628
+
+        Returns
+        -------
+        dict
+            The device code response per RFC 8628.
+        """
         scope = "read write"
 
         device_code = (
@@ -92,6 +141,24 @@ class NengoEdgeTokenClient:
         return device_code
 
     def get_token_from_device_code(self, device_code: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Requests a token using a device code from the authorization server.
+
+        This requires user interaction - they must navigate to the URL
+        and click on a button in the browser. This may be on a separate device.
+
+        See: https://datatracker.ietf.org/doc/html/rfc8628
+
+        Parameters
+        ----------
+        device_code : dict
+            The device code response from `get_device_code`.
+
+        Returns
+        -------
+        dict
+            The OAuth 2.0 token response.
+        """
         print(f"Go to {device_code['verification_uri_complete']} to confirm access")
 
         max_time = device_code["expires_in"]  # May want to convert to clock time
@@ -131,6 +198,8 @@ class NengoEdgeTokenClient:
 
 
 class NengoEdgeClient:
+    """Class to make calls to the Nengo Edge API."""
+
     def __init__(self, token: str, base_url: Optional[str] = None):
         if base_url is None:
             base_url = os.environ.get(API_ROOT_KEY)
@@ -138,39 +207,74 @@ class NengoEdgeClient:
             base_url = "https://edge.nengo.ai/gql"
         self.base_url = base_url
 
-        self._create_client(token)
+        self.set_token(token)
 
-    def _create_client(self, token: str) -> None:
+    def set_token(self, new_token: str) -> None:
+        """Update the token with a new token (e.g. if the token has expired)."""
         transport = RequestsHTTPTransport(
             url=self.base_url,
             headers={
-                "Authorization": f"Bearer {token}",
+                "Authorization": f"Bearer {new_token}",
             },
         )
         self.client = Client(transport=transport, fetch_schema_from_transport=True)
 
-    def set_token(self, new_token: str) -> None:
-        self._create_client(new_token)
-
     def _execute_gql(self, gql_string: str, variables: Optional[Dict] = None) -> Dict:
+        """Execute the given gql query with optional variables."""
         query_or_mutation = gql(gql_string)
         # Wrong Permissions: TransportQueryError
         return self.client.execute(query_or_mutation, variable_values=variables)
 
     def get_projects(self) -> List[Dict[str, Any]]:
+        """Returns a list of project ids and names."""
         response = self._execute_gql(
             """
             query GetAllProjects {
                 projects {
                 _id
-                name           
+                name
                 }
             }
             """
         )
         return response["projects"]
 
+    def get_datasets(self, model_type: str) -> Dict[str, Any]:
+        """
+        Get a list of datasets grouped by the base data.
+
+        Base data represents the data files; different datasets can be configured
+        for the same dataset with different parameters.
+        """
+
+        get_base_data_query = """
+        query GetBasedatas($modelType: ModelType) {
+            baseData(modelType: $modelType) {
+            name
+            datasets {
+                _id
+                name
+                }
+            }
+        }
+        """
+        return self._execute_gql(get_base_data_query, {"modelType": model_type})
+
+    def get_networks(self, model_type: str) -> Dict[str, Any]:
+        """Get a list of networks."""
+
+        get_networks_query = """
+         query GetAllNetworks($modelType: ModelType!) {
+            networks(modelType: $modelType) {
+            _id
+            name
+            }
+        }
+        """
+        return self._execute_gql(get_networks_query, {"modelType": model_type})
+
     def add_run(self, project_id: str, model_type: str) -> Dict[str, Any]:
+        """Create a new run."""
         add_run_mutation = """
         mutation AddRun($id: ObjectId!, $modelType: ModelType!) {
             addRun(project: $id, modelType: $modelType) {
@@ -184,6 +288,7 @@ class NengoEdgeClient:
         )
 
     def update_run(self, run_id: str, run_input: Dict[str, Any]) -> Dict[str, Any]:
+        """Update a run."""
         update_run_mutation = """
         mutation UpdateRun($id: ObjectId!, $runInput: RunInput!) {
             updateRun(run: $id, updates: $runInput) {
@@ -197,6 +302,7 @@ class NengoEdgeClient:
         )
 
     def start_optimize_run(self, run_id: str) -> dict:
+        """Start optimizing a run."""
         start_optimize_mutation = """
             mutation StartOptimize($id: ObjectId!) {
                 startOptimize(run: $id) {
@@ -208,6 +314,7 @@ class NengoEdgeClient:
         return self._execute_gql(start_optimize_mutation, variables={"id": run_id})
 
     def get_results(self, run_id: str) -> Dict:
+        """Get the run status along with results if present."""
         get_results_query = """
             query GetResults($id: ObjectId!) {
                 run(_id: $id) {
@@ -225,11 +332,25 @@ class NengoEdgeClient:
 
     # Higher level functions
     def start_training_run(
-        self, project_id: str, model_type: str, hyperparams: dict[str, Any]
+        self,
+        project_id: str,
+        model_type: str,
+        hyperparams: Dict[str, Any],
+        hardware: Optional[str] = None,
+        dataset: Optional[str] = None,
+        network: Optional[str] = None,
     ) -> str:
+        """Create a run with the given model type and hyperparameters, and start
+        training it."""
         add_response = self.add_run(project_id, model_type)
         run_id = add_response["addRun"]["_id"]
-        run_input = {"hyperparams": hyperparams}
+        run_input: Dict[str, Any] = {"hyperparams": hyperparams}
+        if hardware is not None:
+            run_input["hardwareId"] = hardware
+        if dataset is not None:
+            run_input["datasetId"] = dataset
+        if network is not None:
+            run_input["networkId"] = network
         self.update_run(run_id, run_input)
         self.start_optimize_run(run_id)
         return run_id
