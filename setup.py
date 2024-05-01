@@ -34,6 +34,7 @@ install_req = [
     "rich>=13.3.1",
     "soundfile>=0.12.1",
     "numpy>=1.23.0",
+    "gql>=3.5.0",
 ]
 docs_req = [
     "jupyter>=1.0.0",
