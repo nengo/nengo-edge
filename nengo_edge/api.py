@@ -1,11 +1,11 @@
-import asyncio
 import os
+import time
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
-import httpx
+import requests
 from gql import Client, gql
-from gql.transport.httpx import HTTPXAsyncTransport
+from gql.transport.requests import RequestsHTTPTransport
 
 AUDIENCE_KEY = "NENGO_EDGE_API_AUDIENCE"
 AUTH_DOMAIN_KEY = "NENGO_EDGE_API_AUTH_DOMAIN"
@@ -14,6 +14,8 @@ API_ROOT_KEY = "NENGO_EDGE_API_ROOT"
 
 
 class NengoEdgeTokenClient:
+    REQUESTS_TIMEOUT = 7
+
     def __init__(
         self,
         client_id: Optional[str] = None,
@@ -44,6 +46,11 @@ class NengoEdgeTokenClient:
         self.token: Optional[str] = None
         self.token_expiry: Optional[datetime] = None
 
+        self.session = requests.Session()
+        self.session.headers.update(
+            {"content-type": "application/x-www-form-urlencoded"}
+        )
+
     def has_unexpired_token(self) -> bool:
         return (
             self.token_expiry is not None
@@ -51,82 +58,74 @@ class NengoEdgeTokenClient:
             and self.token is not None
         )
 
-    async def get_token(self, skip_cache: bool = False) -> str:
+    def get_token(self, skip_cache: bool = False) -> str:
         if skip_cache or not self.has_unexpired_token():
-            return await self.request_token()
+            return self.request_token()
         assert self.token is not None
         return self.token
 
-    async def request_token(self) -> str:
-        device_code = await self.get_device_code()
+    def request_token(self) -> str:
+        device_code = self.get_device_code()
         requested_time = datetime.now()
-        token_response = await self.get_token_from_device_code(device_code)
+        token_response = self.get_token_from_device_code(device_code)
         token = token_response["access_token"]
         delta = timedelta(seconds=token_response["expires_in"])
         self.token = token
         self.token_expiry = requested_time + delta
         return token
 
-    async def get_device_code(self) -> Dict[str, Any]:
+    def get_device_code(self) -> Dict[str, Any]:
         scope = "read write"
 
-        headers = {"content-type": "application/x-www-form-urlencoded"}
-
-        async with httpx.AsyncClient() as session:
-            device_code = (
-                await session.post(
-                    url=f"{self.auth_domain}oauth/device/code",
-                    headers=headers,
-                    data={
-                        "scope": scope,
-                        "client_id": self.client_id,
-                        "audience": self.audience,
-                    },
-                )
-            ).json()
+        device_code = (
+            self.session.post(
+                url=f"{self.auth_domain}oauth/device/code",
+                data={
+                    "scope": scope,
+                    "client_id": self.client_id,
+                    "audience": self.audience,
+                },
+                timeout=self.REQUESTS_TIMEOUT,
+            )
+        ).json()
 
         return device_code
 
-    async def get_token_from_device_code(
-        self, device_code: Dict[str, Any]
-    ) -> Dict[str, Any]:
-        headers = {"content-type": "application/x-www-form-urlencoded"}
-
+    def get_token_from_device_code(self, device_code: Dict[str, Any]) -> Dict[str, Any]:
         print(f"Go to {device_code['verification_uri_complete']} to confirm access")
 
         max_time = device_code["expires_in"]  # May want to convert to clock time
         interval = device_code["interval"]
 
-        await asyncio.sleep(interval)
+        time.sleep(interval)
         elapsed_time = interval
 
-        async with httpx.AsyncClient() as session:
-            while elapsed_time < max_time:
-                token_response = await session.post(
-                    url=f"{self.auth_domain}oauth/token",
-                    headers=headers,
-                    data={
-                        "grant_type": "urn:ietf:params:oauth:grant-type:device_code",
-                        "device_code": device_code["device_code"],
-                        "client_id": self.client_id,
-                    },
-                )
-                token_response_json = token_response.json()
+        while elapsed_time < max_time:
+            token_response = self.session.post(
+                url=f"{self.auth_domain}oauth/token",
+                data={
+                    "grant_type": "urn:ietf:params:oauth:grant-type:device_code",
+                    "device_code": device_code["device_code"],
+                    "client_id": self.client_id,
+                },
+                timeout=self.REQUESTS_TIMEOUT,
+            )
+            token_response_json = token_response.json()
 
-                if token_response.status_code == 200:
-                    return token_response_json
+            if token_response.status_code == 200:
+                return token_response_json
 
-                if (
-                    token_response.status_code == 403
-                    and token_response_json["error"] == "authorization_pending"
-                ):
-                    elapsed_time += interval
-                    print("Waiting for confirmation in browser")
-                    await asyncio.sleep(interval)
-                else:
-                    # Some other error
-                    print(token_response_json)
-                    raise NotImplementedError
+            if (
+                token_response.status_code == 403
+                and token_response_json["error"] == "authorization_pending"
+            ):
+                elapsed_time += interval
+                print("Waiting for confirmation in browser")
+                time.sleep(interval)
+            else:
+                # Some other error
+                print(token_response_json)
+                raise NotImplementedError
 
         return token_response_json
 
@@ -142,7 +141,7 @@ class NengoEdgeClient:
         self._create_client(token)
 
     def _create_client(self, token: str) -> None:
-        transport = HTTPXAsyncTransport(
+        transport = RequestsHTTPTransport(
             url=self.base_url,
             headers={
                 "Authorization": f"Bearer {token}",
@@ -153,17 +152,13 @@ class NengoEdgeClient:
     def set_token(self, new_token: str) -> None:
         self._create_client(new_token)
 
-    async def _execute_gql(
-        self, gql_string: str, variables: Optional[Dict] = None
-    ) -> Dict:
+    def _execute_gql(self, gql_string: str, variables: Optional[Dict] = None) -> Dict:
         query_or_mutation = gql(gql_string)
         # Wrong Permissions: TransportQueryError
-        return await self.client.execute_async(
-            query_or_mutation, variable_values=variables
-        )
+        return self.client.execute(query_or_mutation, variable_values=variables)
 
-    async def get_projects(self) -> List[Dict[str, Any]]:
-        response = await self._execute_gql(
+    def get_projects(self) -> List[Dict[str, Any]]:
+        response = self._execute_gql(
             """
             query GetAllProjects {
                 projects {
@@ -175,7 +170,7 @@ class NengoEdgeClient:
         )
         return response["projects"]
 
-    async def add_run(self, project_id: str, model_type: str) -> Dict[str, Any]:
+    def add_run(self, project_id: str, model_type: str) -> Dict[str, Any]:
         add_run_mutation = """
         mutation AddRun($id: ObjectId!, $modelType: ModelType!) {
             addRun(project: $id, modelType: $modelType) {
@@ -184,13 +179,11 @@ class NengoEdgeClient:
         }
         """
 
-        return await self._execute_gql(
+        return self._execute_gql(
             add_run_mutation, {"id": project_id, "modelType": model_type}
         )
 
-    async def update_run(
-        self, run_id: str, run_input: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def update_run(self, run_id: str, run_input: Dict[str, Any]) -> Dict[str, Any]:
         update_run_mutation = """
         mutation UpdateRun($id: ObjectId!, $runInput: RunInput!) {
             updateRun(run: $id, updates: $runInput) {
@@ -198,12 +191,12 @@ class NengoEdgeClient:
             }
         }
         """
-        return await self._execute_gql(
+        return self._execute_gql(
             update_run_mutation,
             variables={"id": run_id, "runInput": run_input},
         )
 
-    async def start_optimize_run(self, run_id: str) -> dict:
+    def start_optimize_run(self, run_id: str) -> dict:
         start_optimize_mutation = """
             mutation StartOptimize($id: ObjectId!) {
                 startOptimize(run: $id) {
@@ -212,11 +205,9 @@ class NengoEdgeClient:
                 }
             }
         """
-        return await self._execute_gql(
-            start_optimize_mutation, variables={"id": run_id}
-        )
+        return self._execute_gql(start_optimize_mutation, variables={"id": run_id})
 
-    async def get_results(self, run_id: str) -> Dict:
+    def get_results(self, run_id: str) -> Dict:
         get_results_query = """
             query GetResults($id: ObjectId!) {
                 run(_id: $id) {
@@ -229,16 +220,16 @@ class NengoEdgeClient:
                 }
             }
         """
-        response = await self._execute_gql(get_results_query, variables={"id": run_id})
+        response = self._execute_gql(get_results_query, variables={"id": run_id})
         return response["run"]
 
     # Higher level functions
-    async def start_training_run(
+    def start_training_run(
         self, project_id: str, model_type: str, hyperparams: dict[str, Any]
     ) -> str:
-        add_response = await self.add_run(project_id, model_type)
+        add_response = self.add_run(project_id, model_type)
         run_id = add_response["addRun"]["_id"]
         run_input = {"hyperparams": hyperparams}
-        await self.update_run(run_id, run_input)
-        await self.start_optimize_run(run_id)
+        self.update_run(run_id, run_input)
+        self.start_optimize_run(run_id)
         return run_id
