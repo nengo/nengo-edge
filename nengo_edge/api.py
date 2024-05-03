@@ -7,12 +7,30 @@ from typing import Any, Dict, List, Optional
 
 import requests
 from gql import Client, gql
+from gql.transport.exceptions import TransportQueryError
 from gql.transport.requests import RequestsHTTPTransport
+from graphql.error.graphql_error import GraphQLError
 
 AUDIENCE_KEY = "NENGO_EDGE_API_AUDIENCE"
 AUTH_DOMAIN_KEY = "NENGO_EDGE_API_AUTH_DOMAIN"
 CLIENT_ID_KEY = "NENGO_EDGE_API_CLIENT_ID"
 API_ROOT_KEY = "NENGO_EDGE_API_ROOT"
+
+
+class NengoEdgeAPIError(Exception):
+    """Generic errors relating to NengoEdgeAPI."""
+
+
+class AuthenticationError(NengoEdgeAPIError):
+    """An error because of a problem authenticating."""
+
+
+class RequestError(NengoEdgeAPIError):
+    """An error because of a problem with the request.."""
+
+
+class NotFoundError(NengoEdgeAPIError):
+    """An error because the requested item does not exist."""
 
 
 class NengoEdgeTokenClient:
@@ -66,7 +84,7 @@ class NengoEdgeTokenClient:
         """
         return (
             self.token_expiry is not None
-            and self.token_expiry < datetime.now()
+            and self.token_expiry > datetime.now()
             and self.token is not None
         )
 
@@ -115,8 +133,6 @@ class NengoEdgeTokenClient:
         """
         Request a device code from the authorization server.
 
-        This requires user interaction if there's not a valid token.
-
         See: https://datatracker.ietf.org/doc/html/rfc8628
 
         Returns
@@ -125,20 +141,21 @@ class NengoEdgeTokenClient:
             The device code response per RFC 8628.
         """
         scope = "read write"
+        response = self.session.post(
+            url=f"{self.auth_domain}oauth/device/code",
+            data={
+                "scope": scope,
+                "client_id": self.client_id,
+                "audience": self.audience,
+            },
+            timeout=self.REQUESTS_TIMEOUT,
+        )
 
-        device_code = (
-            self.session.post(
-                url=f"{self.auth_domain}oauth/device/code",
-                data={
-                    "scope": scope,
-                    "client_id": self.client_id,
-                    "audience": self.audience,
-                },
-                timeout=self.REQUESTS_TIMEOUT,
-            )
-        ).json()
-
-        return device_code
+        response_obj = response.json()
+        if response.ok:
+            return response_obj
+        else:
+            raise AuthenticationError(response_obj)
 
     def get_token_from_device_code(self, device_code: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -184,17 +201,16 @@ class NengoEdgeTokenClient:
 
             if (
                 token_response.status_code == 403
-                and token_response_json["error"] == "authorization_pending"
+                and token_response_json.get("error") == "authorization_pending"
             ):
                 elapsed_time += interval
                 print("Waiting for confirmation in browser")
                 time.sleep(interval)
             else:
                 # Some other error
-                print(token_response_json)
-                raise NotImplementedError
+                raise AuthenticationError(token_response_json)
 
-        return token_response_json
+        raise AuthenticationError("Timed out waiting for confirmation.")
 
 
 class NengoEdgeClient:
@@ -223,7 +239,19 @@ class NengoEdgeClient:
         """Execute the given gql query with optional variables."""
         query_or_mutation = gql(gql_string)
         # Wrong Permissions: TransportQueryError
-        return self.client.execute(query_or_mutation, variable_values=variables)
+        try:
+            return self.client.execute(query_or_mutation, variable_values=variables)
+        except TransportQueryError as e:
+            expired_token_message = "Token is expired"
+            if e.errors and any(
+                expired_token_message in error["message"] for error in e.errors
+            ):
+                raise AuthenticationError(expired_token_message) from e
+            # Other reasons for invalid token?
+            else:
+                raise RequestError() from e
+        except GraphQLError as e:
+            raise RequestError("Invalid GraphQL Query") from e
 
     def get_projects(self) -> List[Dict[str, Any]]:
         """Returns a list of project ids and names."""
@@ -239,18 +267,12 @@ class NengoEdgeClient:
         )
         return response["projects"]
 
-    def get_datasets(self, model_type: str) -> Dict[str, Any]:
-        """
-        Get a list of datasets grouped by the base data.
-
-        Base data represents the data files; different datasets can be configured
-        for the same dataset with different parameters.
-        """
+    def get_datasets(self, model_type: str) -> List[Dict[str, Any]]:
+        """Get a list of datasets for the given model type."""
 
         get_base_data_query = """
         query GetBasedatas($modelType: ModelType) {
             baseData(modelType: $modelType) {
-            name
             datasets {
                 _id
                 name
@@ -258,10 +280,18 @@ class NengoEdgeClient:
             }
         }
         """
-        return self._execute_gql(get_base_data_query, {"modelType": model_type})
 
-    def get_networks(self, model_type: str) -> Dict[str, Any]:
-        """Get a list of networks."""
+        baseData = self._execute_gql(get_base_data_query, {"modelType": model_type})[
+            "baseData"
+        ]
+
+        datasets = []
+        for base in baseData:
+            datasets.extend(base["datasets"])
+        return datasets
+
+    def get_networks(self, model_type: str) -> List[Dict[str, Any]]:
+        """Get a list of networks for the given model type."""
 
         get_networks_query = """
          query GetAllNetworks($modelType: ModelType!) {
@@ -271,7 +301,9 @@ class NengoEdgeClient:
             }
         }
         """
-        return self._execute_gql(get_networks_query, {"modelType": model_type})
+        return self._execute_gql(get_networks_query, {"modelType": model_type})[
+            "networks"
+        ]
 
     def add_run(self, project_id: str, model_type: str) -> Dict[str, Any]:
         """Create a new run."""
@@ -285,7 +317,7 @@ class NengoEdgeClient:
 
         return self._execute_gql(
             add_run_mutation, {"id": project_id, "modelType": model_type}
-        )
+        )["addRun"]
 
     def update_run(self, run_id: str, run_input: Dict[str, Any]) -> Dict[str, Any]:
         """Update a run."""
@@ -299,19 +331,20 @@ class NengoEdgeClient:
         return self._execute_gql(
             update_run_mutation,
             variables={"id": run_id, "runInput": run_input},
-        )
+        )["updateRun"]
 
-    def start_optimize_run(self, run_id: str) -> dict:
+    def start_optimize(self, run_id: str) -> dict:
         """Start optimizing a run."""
         start_optimize_mutation = """
             mutation StartOptimize($id: ObjectId!) {
                 startOptimize(run: $id) {
                 _id
-                status
                 }
             }
         """
-        return self._execute_gql(start_optimize_mutation, variables={"id": run_id})
+        return self._execute_gql(start_optimize_mutation, variables={"id": run_id})[
+            "startOptimize"
+        ]
 
     def get_results(self, run_id: str) -> Dict:
         """Get the run status along with results if present."""
@@ -336,21 +369,20 @@ class NengoEdgeClient:
         project_id: str,
         model_type: str,
         hyperparams: Dict[str, Any],
-        hardware: Optional[str] = None,
+        hardware: str = "gpu",
         dataset: Optional[str] = None,
         network: Optional[str] = None,
     ) -> str:
         """Create a run with the given model type and hyperparameters, and start
         training it."""
         add_response = self.add_run(project_id, model_type)
-        run_id = add_response["addRun"]["_id"]
+        run_id = add_response["_id"]
         run_input: Dict[str, Any] = {"hyperparams": hyperparams}
-        if hardware is not None:
-            run_input["hardwareId"] = hardware
+        run_input["hardwareId"] = hardware
         if dataset is not None:
             run_input["datasetId"] = dataset
         if network is not None:
             run_input["networkId"] = network
         self.update_run(run_id, run_input)
-        self.start_optimize_run(run_id)
+        self.start_optimize(run_id)
         return run_id
