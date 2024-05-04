@@ -45,7 +45,7 @@ docs_req = [
     "sphinx-tabs>=3.2.0",
 ]
 optional_req = [
-    "tensorflow>=2.10.0",
+    "tensorflow>=2.16.0",
     "tensorflow-text>=2.13.0",
 ]
 tests_req = [

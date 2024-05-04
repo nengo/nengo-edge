@@ -11,6 +11,7 @@ license: mit
 setup_cfg:
   mypy:
     ignore_missing_imports:
+      - keras
       - serial
       - soundfile
       - tensorflow
@@ -27,9 +28,11 @@ ci_scripts:
     coverage: true
     pip_install:
       - $TF_VERSION
+      - git+https://github.com/nengo/keras-lmu@tf-2.16#egg=keras-lmu
   - template: docs
     pip_install:
       - $TF_VERSION
+      - git+https://github.com/nengo/keras-lmu@tf-2.16#egg=keras-lmu
   - template: deploy
     wheel: true
   - template: examples
@@ -62,7 +65,7 @@ setup_py:
     - sphinx-click>=5.0.0
     - sphinx-tabs>=3.2.0
   optional_req:
-    - tensorflow>=2.10.0 # TODO: support earlier versions?
+    - tensorflow>=2.16.0
     - tensorflow-text>=2.13.0
   url: https://github.com/nengo/nengo-edge
   classifiers:

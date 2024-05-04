@@ -20,8 +20,8 @@ defaults:
     shell: bash -el {0}
 
 env:
-  NENGO_EDGE_HW_REF: main
-  NENGO_EDGE_MODELS_REF: main
+  NENGO_EDGE_HW_REF: tf-2.16
+  NENGO_EDGE_MODELS_REF: tf-2.16
 
 jobs:
   static:
@@ -84,7 +84,7 @@ jobs:
       fail-fast: false
     runs-on: ${{ matrix.runs-on }}
     env:
-      TF_VERSION: ${{ matrix.tf-version || 'tensorflow~=2.13.0' }}
+      TF_VERSION: ${{ matrix.tf-version || 'tensorflow~=2.16.0' }}
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
     defaults:
       run:
