@@ -248,7 +248,7 @@ class NengoEdgeClient:
             return self.client.execute(query_or_mutation, variable_values=variables)
         except TransportQueryError as e:
             if e.errors and len(e.errors) > 0 and e.errors[0].get("message"):
-                raise AuthenticationError(e.errors[0]["message"])
+                raise AuthenticationError(e.errors[0]["message"]) from e
             # Other reasons for invalid token?
             else:
                 raise RequestError() from e
