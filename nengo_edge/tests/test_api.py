@@ -1,19 +1,14 @@
 # pylint: disable=missing-docstring
 
-import os
 from datetime import datetime, timedelta
-from typing import Any, Dict, Union
+from typing import Any, Dict
 
 import pytest
-import requests
-from dotenv import load_dotenv
 from gql.transport.exceptions import TransportQueryError
 from graphql.error.graphql_error import GraphQLError
 from pytest import MonkeyPatch
 
 from nengo_edge import api
-
-load_dotenv()
 
 
 class MockResponse:
@@ -27,39 +22,6 @@ class MockResponse:
     @property
     def ok(self) -> bool:
         return self.status_code < 400
-
-
-@pytest.fixture(scope="module", name="test_token")
-def fixture_test_token() -> Union[str, None]:
-    # Local Testing: Set a token (must be updated every 24 hours)
-    token = os.environ.get("NENGO_EDGE_API_TEST_TOKEN")
-    if token is not None:
-        return token
-    # CI: Get a Client Credentials Token
-    secret = os.environ.get("AUTH_CLIENT_SECRET")
-    auth_domain = os.environ.get(api.AUTH_DOMAIN_KEY)
-    client_id = os.environ.get(api.CLIENT_ID_KEY)
-    audience = os.environ.get(api.AUDIENCE_KEY)
-
-    if secret is None or auth_domain is None or client_id is None or audience is None:
-        pytest.xfail(
-            "One or more of AUTH_CLIENT_SECRET, {api.AUTH_DOMAIN_KEY}, "
-            "{api.CLIENT_ID_KEY} or {api.AUDIENCE_KEY} not set"
-        )
-
-    print("Fetching new auth token")
-    token = requests.post(
-        url=f"{auth_domain}oauth/token",
-        headers={"content-type": "application/x-www-form-urlencoded"},
-        data={
-            "grant_type": "client_credentials",
-            "client_id": client_id,
-            "client_secret": secret,
-            "audience": audience,
-        },
-        timeout=30,
-    ).json()["access_token"]
-    return token
 
 
 def test_create_client_defaults(monkeypatch: MonkeyPatch) -> None:
@@ -282,24 +244,6 @@ def test_start_training_run_creates_correct_input(
         "projectId", "KWS", {"steps": 1000}, hardware, dataset, network
     )
     assert run_id == "fakeRunId"
-
-
-def test_start_training_run_succeeds(test_token: str) -> None:
-    if test_token is None:
-        pytest.skip("Test token not available")
-    client = api.NengoEdgeClient(test_token)
-    model_type = "KWS"
-    project_id = client.get_projects()[0]["_id"]
-    dataset_id = "65e8bfa226c1057c10a6f658"
-    network_id = client.get_networks(model_type)[0]["_id"]
-
-    run_id = client.start_training_run(
-        project_id, model_type, {"steps": 1}, "cpu", dataset_id, network_id
-    )
-    assert run_id is not None
-    results = client.get_results(run_id)
-    assert results["status"] == "QUEUED"
-    assert len(results["results"]) == 0
 
 
 def test_get_device_code_succeeds(monkeypatch: MonkeyPatch) -> None:

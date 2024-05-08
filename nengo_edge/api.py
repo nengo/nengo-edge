@@ -216,22 +216,27 @@ class NengoEdgeTokenClient:
 class NengoEdgeClient:
     """Class to make calls to the Nengo Edge API."""
 
-    def __init__(self, token: str, base_url: Optional[str] = None):
+    def __init__(
+        self,
+        token: str,
+        base_url: Optional[str] = None,
+        custom_headers: Optional[Dict[str, Any]] = None,
+    ):
         if base_url is None:
             base_url = os.environ.get(API_ROOT_KEY)
         if base_url is None:
             base_url = "https://edge.nengo.ai/gql"
         self.base_url = base_url
+        self.headers = custom_headers or {}
 
         self.set_token(token)
 
     def set_token(self, new_token: str) -> None:
         """Update the token with a new token (e.g. if the token has expired)."""
+        self.headers["Authorization"] = f"Bearer {new_token}"
         transport = RequestsHTTPTransport(
             url=self.base_url,
-            headers={
-                "Authorization": f"Bearer {new_token}",
-            },
+            headers=self.headers,
         )
         self.client = Client(transport=transport, fetch_schema_from_transport=True)
 
@@ -242,11 +247,8 @@ class NengoEdgeClient:
         try:
             return self.client.execute(query_or_mutation, variable_values=variables)
         except TransportQueryError as e:
-            expired_token_message = "Token is expired"
-            if e.errors and any(
-                expired_token_message in error["message"] for error in e.errors
-            ):
-                raise AuthenticationError(expired_token_message) from e
+            if e.errors and len(e.errors) > 0 and e.errors[0].get("message"):
+                raise AuthenticationError(e.errors[0]["message"])
             # Other reasons for invalid token?
             else:
                 raise RequestError() from e
