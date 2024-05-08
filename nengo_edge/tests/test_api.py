@@ -24,17 +24,23 @@ class MockResponse:
         return self.status_code < 400
 
 
-def test_create_client_defaults(monkeypatch: MonkeyPatch) -> None:
+def test_create_client(monkeypatch: MonkeyPatch) -> None:
     client = api.NengoEdgeClient("token", "https://example.com")
     assert client.base_url == "https://example.com"
 
-    monkeypatch.delenv(api.API_ROOT_KEY)
+    monkeypatch.delenv(api.API_ROOT_KEY, raising=False)
 
     client = api.NengoEdgeClient("token")
     assert client.base_url == "https://edge.nengo.ai/gql"
 
-    client = api.NengoEdgeClient("token", "https://example.com")
-    assert client.base_url == "https://example.com"
+    monkeypatch.setenv(api.API_ROOT_KEY, "https://example.com/env")
+
+    client = api.NengoEdgeClient(
+        "token", custom_headers={"custom_header": "custom value"}
+    )
+    assert client.base_url == "https://example.com/env"
+    assert client.headers["custom_header"] == "custom value"
+    assert client.headers["Authorization"].startswith("Bearer ")
 
 
 def test_has_unexpired_token() -> None:
@@ -258,7 +264,7 @@ def test_get_device_code_succeeds(monkeypatch: MonkeyPatch) -> None:
             },
         )
 
-    token_client = api.NengoEdgeTokenClient()
+    token_client = api.NengoEdgeTokenClient("client_id")
 
     monkeypatch.setattr(token_client.session, "post", mock_post)
 
@@ -267,7 +273,7 @@ def test_get_device_code_succeeds(monkeypatch: MonkeyPatch) -> None:
 
 
 def test_request_token_succeeds(monkeypatch: MonkeyPatch) -> None:
-    token_client = api.NengoEdgeTokenClient()
+    token_client = api.NengoEdgeTokenClient("client_id")
 
     def mock_get_device_code() -> Dict[str, Any]:
         return {
@@ -329,7 +335,7 @@ def test_get_token_from_device_code_succeeds(monkeypatch: MonkeyPatch) -> None:
             return MockResponse(403, {"error": "authorization_pending"})
         return MockResponse(200, {"access_token": "mock_token", "expires_in": 60})
 
-    token_client = api.NengoEdgeTokenClient()
+    token_client = api.NengoEdgeTokenClient("client_id")
 
     monkeypatch.setattr(token_client.session, "post", mock_post)
 
@@ -355,7 +361,7 @@ def test_get_token_from_device_code_fails(monkeypatch: MonkeyPatch) -> None:
             },
         )
 
-    token_client = api.NengoEdgeTokenClient()
+    token_client = api.NengoEdgeTokenClient("client_id")
 
     monkeypatch.setattr(token_client.session, "post", mock_post)
 
@@ -374,7 +380,7 @@ def test_get_token_from_device_code_times_out(monkeypatch: MonkeyPatch) -> None:
     def mock_post(url: str, data: Dict[str, Any], timeout: int) -> MockResponse:
         return MockResponse(403, {"error": "authorization_pending"})
 
-    token_client = api.NengoEdgeTokenClient()
+    token_client = api.NengoEdgeTokenClient("client_id")
 
     monkeypatch.setattr(token_client.session, "post", mock_post)
 
@@ -391,12 +397,12 @@ def test_get_token_from_device_code_times_out(monkeypatch: MonkeyPatch) -> None:
         token_client.get_token_from_device_code(device_code)
 
 
-def test_create_token_client_defaults(
+def test_create_token_client(
     monkeypatch: MonkeyPatch,
 ) -> None:
-    monkeypatch.delenv(api.AUTH_DOMAIN_KEY)
-    monkeypatch.delenv(api.CLIENT_ID_KEY)
-    monkeypatch.delenv(api.AUDIENCE_KEY)
+    monkeypatch.delenv(api.AUTH_DOMAIN_KEY, raising=False)
+    monkeypatch.delenv(api.CLIENT_ID_KEY, raising=False)
+    monkeypatch.delenv(api.AUDIENCE_KEY, raising=False)
 
     with pytest.raises(ValueError):
         api.NengoEdgeTokenClient()
@@ -414,6 +420,14 @@ def test_create_token_client_defaults(
     assert client.auth_domain == "https://auth.example.com/"
     assert client.audience == "https://example.com/"
     assert client.session.headers["content-type"] == "application/x-www-form-urlencoded"
+
+    monkeypatch.setenv(api.AUTH_DOMAIN_KEY, "https://auth.nengo.ai/test")
+    monkeypatch.setenv(api.CLIENT_ID_KEY, "client_id")
+    monkeypatch.setenv(api.AUDIENCE_KEY, "https://auth.nengo.ai/test_audience/")
+    client = api.NengoEdgeTokenClient()
+    assert client.client_id == "client_id"
+    assert client.auth_domain == "https://auth.nengo.ai/test"
+    assert client.audience == "https://auth.nengo.ai/test_audience/"
 
 
 def test_execute_gql_errors(monkeypatch: MonkeyPatch) -> None:

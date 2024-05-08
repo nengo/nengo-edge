@@ -49,7 +49,7 @@ class NengoEdgeTokenClient:
             if client_id is None:
                 raise ValueError(
                     "client_id not be set as a parameter or using"
-                    f"{CLIENT_ID_KEY} environment variable"
+                    f" {CLIENT_ID_KEY} environment variable"
                 )
         self.client_id = client_id
 
