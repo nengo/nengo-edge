@@ -6,3 +6,4 @@ bones-scripts/
 docs/_build/
 nengo_edge.egg-info
 tmp
+.env

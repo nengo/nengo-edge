@@ -34,6 +34,7 @@ install_req = [
     "rich>=13.3.1",
     "soundfile>=0.12.1",
     "numpy>=1.23.0",
+    "gql[requests]>=3.5.0",
 ]
 docs_req = [
     "jupyter>=1.0.0",
@@ -53,6 +54,7 @@ tests_req = [
     "pytest>=7.1.1",
     "pytest-rng>=1.0.0",
     "types-click>=7.1.0",
+    "types-requests>=2.31.0",
 ]
 
 setup(
